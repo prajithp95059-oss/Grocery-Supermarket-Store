@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Stackly Grocery & Supermarket</title>
+<meta name="description" content="Log in or create your Stackly account.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+    :root{
+      --forest-dark:#0F2E1F;
+      --forest:#1E4B32;
+      --leaf:#3F8555;
+      --leaf-light:#6FA96F;
+      --gold:#E3B23C;
+      --tangerine:#E8631E;
+      --cream:#FBF7EC;
+      --paper:#F2E9D6;
+      --kraft:#C9A66B;
+      --kraft-dark:#8A6C3F;
+      --ink:#1B1B15;
+      --ink-soft:#4A4A3E;
+      --line:rgba(27,27,21,.12);
+      --white:#FFFFFF;
+      --font-display:'Fraunces',serif;
+      --font-body:'Inter',sans-serif;
+      --font-mono:'Space Mono',monospace;
+      --radius:18px;
+      --shadow-soft:0 20px 50px -20px rgba(15,46,31,.35);
+      --shadow-card:0 10px 30px -12px rgba(27,27,21,.25);
+    }
+    *,*::before,*::after{box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{
+      margin:0;
+      font-family:var(--font-body);
+      background:var(--cream);
+      color:var(--ink);
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+    img{max-width:100%;display:block;}
+    a{color:inherit;text-decoration:none;}
+    ul{list-style:none;margin:0;padding:0;}
+    h1,h2,h3,h4{font-family:var(--font-display);margin:0;font-weight:600;letter-spacing:-.01em;}
+    p{margin:0;line-height:1.65;color:var(--ink-soft);}
+    button{font-family:inherit;cursor:pointer;}
+    :focus-visible{outline:3px solid var(--tangerine);outline-offset:3px;}
+    .wrap{max-width:1600px;margin:0 auto;padding:0 clamp(24px,4vw,64px);}
+    .eyebrow{
+      font-family:var(--font-mono);
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-size:12.5px;
+      color:var(--leaf);
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .eyebrow::before{content:'';width:22px;height:1px;background:var(--leaf);}
+
+    /* ---------- BACKGROUND CANVAS (webflow-style floating produce blobs) ---------- */
+    #bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.55;}
+    .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+    /* ---------- BUTTONS ---------- */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px 28px;border-radius:100px;font-weight:600;font-size:14.5px;
+      border:1px solid transparent;position:relative;overflow:hidden;isolation:isolate;
+      transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease;
+      white-space:nowrap;
+    }
+    .btn:active{transform:scale(.96);}
+    .btn-primary{background:var(--tangerine);color:var(--white);box-shadow:0 10px 25px -10px rgba(232,99,30,.6);}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 30px -10px rgba(232,99,30,.7);}
+    .btn-dark{background:var(--forest-dark);color:var(--cream);}
+    .btn-dark:hover{transform:translateY(-3px);background:var(--forest);}
+    .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink);}
+    .btn-ghost:hover{border-color:var(--forest);background:rgba(63,133,85,.06);}
+    .btn-sm{padding:10px 18px;font-size:13px;}
+    .btn-block{width:100%;}
+
+    /* ---------- STAMP BADGE (signature element) ---------- */
+    .stamp{
+      width:108px;height:108px;border-radius:50%;
+      border:2px dashed var(--forest);
+      display:grid;place-items:center;text-align:center;
+      font-family:var(--font-mono);color:var(--forest);
+      transform:rotate(-9deg);
+      font-size:11px;text-transform:uppercase;letter-spacing:.08em;line-height:1.5;
+      flex-shrink:0;background:rgba(63,133,85,.05);
+    }
+    .stamp b{display:block;font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--tangerine);letter-spacing:0;text-transform:none;}
+    .stamp.gold{border-color:var(--gold);color:var(--kraft-dark);}
+    .stamp.gold b{color:var(--gold);}
+
+    .section{position:relative;padding:120px 0;z-index:2;}
+    .section.tight{padding:80px 0;}
+    .section-dark{background:var(--forest-dark);color:var(--cream);}
+    .section-dark p{color:rgba(251,247,236,.72);}
+    .section-dark h2,.section-dark h3,.section-dark h4{color:var(--cream);}
+    .section-paper{background:var(--paper);}
+
+    /* reveal utility (scroll trigger targets) */
+    .reveal{opacity:0;transform:translateY(40px);}
+
+    /* forms */
+    .field{margin-bottom:20px;}
+    .field label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
+    .field input,.field textarea,.field select{
+      width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--line);
+      background:var(--white);font-family:var(--font-body);font-size:15px;color:var(--ink);
+      transition:border-color .3s ease,box-shadow .3s ease;
+    }
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--leaf);box-shadow:0 0 0 4px rgba(63,133,85,.12);outline:none;}
+    .field textarea{resize:vertical;min-height:130px;}
+    .field-error{
+      display:block;
+      min-height:16px;
+      font-size:12.5px;
+      color:var(--tangerine);
+      margin-top:6px;
+      font-family:var(--font-mono);
+    }
+    .field.has-error input{
+      border-color:var(--tangerine);
+      box-shadow:0 0 0 4px rgba(232,99,30,.1);
+    }
+
+    /* cursor blob */
+    .cursor-dot{position:fixed;width:14px;height:14px;border-radius:50%;background:var(--tangerine);pointer-events:none;z-index:9999;mix-blend-mode:normal;transform:translate(-50%,-50%);transition:transform .15s ease;opacity:0;}
+
+    /* utility */
+    .center{text-align:center;}
+    .mt{margin-top:40px;}
+    .flex-c{display:flex;align-items:center;gap:14px;}
+    ::selection{background:var(--gold);color:var(--forest-dark);}
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width:1080px){
+      .wrap{padding:0 28px;}
+    }
+    @media (max-width:640px){
+      .wrap{padding:0 20px;}
+      .section{padding:80px 0;}
+      .stamp{width:88px;height:88px;font-size:9.5px;}
+      .stamp b{font-size:15px;}
+    }
+    @media (max-width:380px){
+      .wrap{padding:0 16px;}
+    }
+
+    /* ---------- AUTH SECTION — centered on the page, enlarged card ---------- */
+    .auth-section{
+      padding:60px 0 100px;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      z-index:2;
+    }
+    .auth-section .wrap{
+      display:flex;
+      justify-content:center;
+    }
+    .auth-shell{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      background:var(--white);
+      border-radius:28px;
+      overflow:hidden;
+      box-shadow:var(--shadow-soft);
+      max-width:1240px;
+      width:100%;
+      margin:0 auto;
+      border:1px solid var(--line);
+    }
+    .auth-media{position:relative;overflow:hidden;min-height:640px;align-self:stretch;}
+    .auth-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;}
+    .auth-media-copy{position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,46,31,.15) 0%,rgba(15,46,31,.7) 35%,rgba(15,46,31,.7) 65%,rgba(15,46,31,.15) 100%);display:flex;flex-direction:column;justify-content:center;padding:52px;color:var(--cream);}
+    .auth-media-copy .stamp{position:absolute;top:36px;left:36px;background:rgba(251,247,236,.92);width:128px;height:128px;font-size:13px;}
+    .auth-media-copy .stamp b{font-size:21px;}
+    .media-logo{display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:700;font-size:24px;letter-spacing:-.01em;color:var(--cream);margin-bottom:18px;}
+    .media-logo .leaf-mark{width:26px;height:26px;flex-shrink:0;}
+    /* FIX: logo <img> uses class "mark-logo" — this rule was missing, so the
+       browser rendered stackly-logo.webp at its native (huge) size and it
+       overlapped the headline. Constrain and contain it here. */
+.media-logo .mark-logo{
+  width:44px;
+  height:44px;
+  object-fit:contain;
+  flex-shrink:0;
+  position:static;
+  border-radius:0;
+}
+    .auth-media-copy h3{font-size:38px;margin-bottom:14px;}
+    .auth-media-copy p{color:rgba(251,247,236,.85);max-width:360px;font-size:17px;}
+
+    .auth-form-wrap{position:relative;padding:64px 58px;display:flex;flex-direction:column;justify-content:center;}
+    .back-home{position:absolute;top:26px;right:32px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink-soft);transition:color .2s ease;}
+    .back-home:hover{color:var(--tangerine);}
+    .auth-tabs{display:flex;gap:4px;background:var(--paper);border-radius:100px;padding:5px;margin-bottom:28px;}
+    .auth-tab{flex:1;padding:13px;border:none;background:none;border-radius:100px;font-weight:600;font-size:15px;color:var(--ink-soft);}
+    .auth-tab.active{background:var(--forest-dark);color:var(--cream);}
+
+    /* Role switch (User / Admin) — pill toggle with icons */
+    .role-switch{display:flex;gap:10px;margin-bottom:30px;}
+    .role-option{flex:1;position:relative;}
+    .role-option input{position:absolute;opacity:0;width:1px;height:1px;}
+    .role-option label{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      padding:15px 10px;border-radius:14px;border:1.5px solid var(--line);
+      font-size:14.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;
+      transition:border-color .25s ease,background .25s ease,color .25s ease,transform .2s ease;
+      background:var(--white);
+    }
+    .role-option label .role-ic{
+      width:19px;height:19px;flex-shrink:0;
+      display:inline-flex;align-items:center;justify-content:center;
+      color:currentColor;
+    }
+    .role-option label .role-ic svg{width:100%;height:100%;display:block;}
+    .role-option input:checked + label{
+      border-color:var(--forest);background:rgba(63,133,85,.08);color:var(--forest-dark);
+    }
+    .role-option:nth-child(2) input:checked + label{
+      border-color:var(--tangerine);background:rgba(232,99,30,.08);color:var(--tangerine);
+    }
+    .role-option label:active{transform:scale(.97);}
+    .role-note{font-family:var(--font-mono);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:-16px 0 22px;opacity:.75;}
+
+    .auth-form h2{font-size:32px;margin-bottom:6px;}
+    .auth-row{display:flex;justify-content:space-between;align-items:center;margin:-6px 0 22px;}
+    .forgot-link{font-size:14px;color:var(--leaf);font-weight:600;}
+    .check-row{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-soft);}
+    .or-divider{text-align:center;position:relative;margin:24px 0;}
+    .or-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--line);}
+    .or-divider span{background:var(--white);padding:0 14px;position:relative;font-size:13px;color:var(--ink-soft);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em;}
+    .social-btns{display:flex;gap:12px;}
+    .demo-note{text-align:center;font-size:13.5px;margin-top:24px;color:var(--ink-soft);}
+    .demo-note a{color:var(--tangerine);font-weight:600;}
+
+
+    .logo{display:flex;align-items:center;gap:2px;font-family:var(--font-display);font-size:22px;font-weight:700;color:white;flex-shrink:0;}
+
+    @media (max-width:900px){
+      .auth-shell{grid-template-columns:1fr;max-width:560px;}
+      .auth-media{height:280px;min-height:0;}
+      .auth-media-copy{padding:24px;}
+      .auth-media-copy .stamp{position:static;width:64px;height:64px;font-size:8.5px;margin-bottom:14px;transform:rotate(-9deg);}
+      .auth-media-copy .stamp b{font-size:13px;}
+      .media-logo{font-size:19px;margin-bottom:10px;}
+      .media-logo .leaf-mark{width:20px;height:20px;}
+      .media-logo .mark-logo{width:22px;height:22px;}
+      .auth-media-copy h3{font-size:24px;}
+      .auth-form-wrap{padding:44px 34px;}
+      .back-home{top:18px;right:20px;}
+      .media-logo .mark-logo{width:32px;height:32px;}
+    }
+    @media (max-width:640px){
+      .auth-form-wrap{padding:34px 26px;}
+      .back-home{font-size:12px;top:14px;right:16px;}
+      .social-btns{flex-direction:column;}
+
+      /* Remove the farm photo entirely on mobile — the form should be the
+         whole card, not a stacked layout with a cropped image on top. */
+      .auth-media{display:none;}
+      .auth-shell{border-radius:22px;}
+    }
+    .ref{
+      color: #0F2E1F;
+      text-decoration:underline;
+    }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="grain"></div>
+<section class="auth-section">
+  <div class="wrap">
+    <div class="auth-shell reveal">
+      <div class="auth-media">
+        <img src="./assets/login bg.webp" alt="Fresh bell peppers and vegetables" data-parallax="-8">
+        <div class="auth-media-copy">
+          <div class="stamp gold"><b>340+</b>Partner<br>Farms</div>
+          <div class="media-logo">
+
+           <a href="index.html" class="logo"><img src="stackly-logo.webp" alt="Stackly logo" class="mark-logo">Stackly</a>
+          </div>
+          <h3>Fresh starts here.</h3>
+          <p>Sign in to reorder your usual crate, track a delivery, or manage your subscription.</p>
+        </div>
+      </div>
+      <div class="auth-form-wrap">
+        <a href="index.html" class="back-home">← Back to Home</a>
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="login">Log In</button>
+          <button class="auth-tab" data-tab="signup">Sign Up</button>
+        </div>
+
+        <form class="auth-form" id="loginForm">
+          <div class="eyebrow">Welcome Back</div>
+          <h2>Log in to your basket.</h2>
+
+          <div class="role-switch mt">
+            <div class="role-option">
+              <input type="radio" name="loginRole" id="roleUser" value="user" checked>
+              <label for="roleUser"><span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9h13l-1.2 9.2a2 2 0 0 1-2 1.8H8.7a2 2 0 0 1-2-1.8L5.5 9Z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/><path d="M4 9h16"/><path d="M9.5 12.5v4"/><path d="M14.5 12.5v4"/></svg></span> Customer</label>
+            </div>
+            <div class="role-option">
+              <input type="radio" name="loginRole" id="roleAdmin" value="admin">
+              <label for="roleAdmin"><span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5Z"/></svg></span> Admin</label>
+            </div>
+          </div>
+          <p class="role-note" id="roleNote">Signing in as a customer</p>
+
+          <div class="field"><label>Email Address</label><input type="email" id="loginEmail" placeholder="you@email.com" required></div>
+          <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" required></div>
+          <div class="auth-row">
+            <label class="check-row"><input type="checkbox"> Remember me</label>
+            <a href="./404.html" class="forgot-link">Forgot password?</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">Log In →</button>
+          <div class="or-divider"><span>or continue with</span></div>
+          <div class="social-btns">
+            <button type="button" class="btn btn-ghost btn-block" onclick="error()">Google</button>
+            <button type="button" class="btn btn-ghost btn-block" onclick="error()">Apple</button>
+          </div>
+
+        </form>
+
+        <form class="auth-form" id="signupForm" style="display:none;">
+          <div class="eyebrow">Join Stackly</div>
+          <h2>Create your account.</h2>
+
+          <div class="role-switch mt">
+            <div class="role-option">
+              <input type="radio" name="signupRole" id="signupRoleUser" value="user" checked>
+              <label for="signupRoleUser"><span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9h13l-1.2 9.2a2 2 0 0 1-2 1.8H8.7a2 2 0 0 1-2-1.8L5.5 9Z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/><path d="M4 9h16"/><path d="M9.5 12.5v4"/><path d="M14.5 12.5v4"/></svg></span> Customer</label>
+            </div>
+            <div class="role-option">
+              <input type="radio" name="signupRole" id="signupRoleAdmin" value="admin">
+              <label for="signupRoleAdmin"><span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5Z"/></svg></span> Admin</label>
+            </div>
+          </div>
+          <p class="role-note" id="signupRoleNote">Creating a customer account</p>
+
+          <div class="field-row">
+            <div class="field">
+              <label>First Name</label>
+              <input type="text" id="signupFirstName" placeholder="Jamie" required>
+              <span class="field-error" id="errFirstName"></span>
+            </div>
+            <div class="field">
+              <label>Last Name</label>
+              <input type="text" id="signupLastName" placeholder="Rivera" required>
+              <span class="field-error" id="errLastName"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Email Address</label>
+            <input type="email" id="signupEmail" placeholder="you@email.com" required>
+            <span class="field-error" id="errEmail"></span>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="signupPassword" placeholder="At least 8 characters" minlength="8" required>
+            <span class="field-error" id="errPassword"></span>
+          </div>
+          <div class="field" id="confirmPasswordField">
+            <label>Confirm Password</label>
+            <input type="password" id="signupConfirmPassword" placeholder="Re-enter your password" minlength="8" required>
+            <span class="field-error" id="errConfirmPassword"></span>
+          </div>
+          <label class="check-row"><input type="checkbox" id="agreeTerms" required> agree to the  <a href="./404.html" class="ref">Terms</a>&amp;<a href="./404.html" class="ref">Privacy Policy</a> </label>
+          <span class="field-error" id="errTerms"></span>
+          <button type="submit" class="btn btn-primary btn-block mt" id="signupSubmitBtn">Create Account →</button>
+          <p class="demo-note" id="signupSuccessNote" style="display:none;color:var(--leaf);font-weight:600;"></p>
+          <p class="demo-note">Already have an account? <a href="#" data-switch="login">Log in instead</a></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ---------- Custom cursor dot (desktop only) ---------- */
+    if(window.matchMedia('(min-width:900px) and (hover:hover)').matches){
+      const dot = document.createElement('div');
+      dot.className='cursor-dot';
+      document.body.appendChild(dot);
+      window.addEventListener('mousemove', e=>{
+        gsap.to(dot,{x:e.clientX,y:e.clientY,opacity:1,duration:.5,ease:'power3.out'});
+      });
+      document.querySelectorAll('a,button').forEach(el=>{
+        el.addEventListener('mouseenter',()=>gsap.to(dot,{scale:2.4,duration:.3}));
+        el.addEventListener('mouseleave',()=>gsap.to(dot,{scale:1,duration:.3}));
+      });
+    }
+    
+
+    /* ---------- Hero entrance (page load) ---------- */
+    gsap.set('[data-hero-el]',{opacity:0,y:40});
+    gsap.to('[data-hero-el]',{opacity:1,y:0,duration:1.1,stagger:.12,ease:'power3.out',delay:.15});
+
+    /* ---------- Generic scroll reveal ---------- */
+    gsap.utils.toArray('.reveal').forEach((el,i)=>{
+      gsap.to(el,{
+        opacity:1,y:0,duration:1,ease:'power3.out',
+        scrollTrigger:{trigger:el,start:'top 88%'}
+      });
+    });
+
+    /* ---------- Parallax images ---------- */
+    gsap.utils.toArray('[data-parallax]').forEach(el=>{
+      gsap.to(el,{
+        yPercent: el.getAttribute('data-parallax')||-12,
+        ease:'none',
+        scrollTrigger:{trigger:el.parentElement,start:'top bottom',end:'bottom top',scrub:true}
+      });
+    });
+
+    /* ---------- Rotating stamp on scroll ---------- */
+    gsap.utils.toArray('.stamp').forEach(el=>{
+      gsap.fromTo(el,{rotate:-30,scale:.6,opacity:0},{
+        rotate:-9,scale:1,opacity:1,duration:1,ease:'back.out(2)',
+        scrollTrigger:{trigger:el,start:'top 90%'}
+      });
+    });
+
+    /* respect reduced motion */
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      gsap.globalTimeline.timeScale(50);
+    }
+
+    function switchAuthTab(tab){
+      document.querySelectorAll('.auth-tab').forEach(t=>t.classList.toggle('active', t.getAttribute('data-tab')===tab));
+      document.getElementById('loginForm').style.display = tab==='login' ? 'block':'none';
+      document.getElementById('signupForm').style.display = tab==='signup' ? 'block':'none';
+      gsap.fromTo('.auth-form:not([style*="display: none"])',{opacity:0,y:12},{opacity:1,y:0,duration:.5,ease:'power2.out'});
+    }
+    document.querySelectorAll('.auth-tab').forEach(t=>t.addEventListener('click',()=>switchAuthTab(t.getAttribute('data-tab'))));
+    document.querySelectorAll('[data-switch]').forEach(el=>el.addEventListener('click',(e)=>{e.preventDefault();switchAuthTab(el.getAttribute('data-switch'));}));
+
+    /* Helper: derive a display name from the part of an email before "@" */
+    function nameFromEmail(email){
+      const local = (email || '').split('@')[0] || '';
+      return local
+        .replace(/[._-]+/g,' ')
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ') || 'Guest';
+    }
+
+    /* ---------- Role-aware login routing ---------- */
+    const roleInputs = document.querySelectorAll('input[name="loginRole"]');
+    const roleNote = document.getElementById('roleNote');
+    const submitBtn = document.getElementById('loginSubmitBtn');
+
+    function updateRoleUI(){
+      const selected = document.querySelector('input[name="loginRole"]:checked').value;
+      if(selected === 'admin'){
+        roleNote.textContent = 'Signing in as an admin';
+        submitBtn.textContent = 'Log In to Admin Portal →';
+      } else {
+        roleNote.textContent = 'Signing in as a customer';
+        submitBtn.textContent = 'Log In →';
+      }
+    }
+    roleInputs.forEach(r=>r.addEventListener('change', updateRoleUI));
+    updateRoleUI();
+
+    const loginForm = document.getElementById('loginForm');
+    if(loginForm){
+      loginForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        const selected = document.querySelector('input[name="loginRole"]:checked').value;
+        const email = document.getElementById('loginEmail').value.trim();
+        const name = nameFromEmail(email);
+        try{
+          sessionStorage.setItem('stackly_user', JSON.stringify({name:name, email:email, role:selected}));
+        }catch(err){}
+        window.location.href = selected === 'admin' ? 'admin-dashboard.html' : 'user-dashboard.html';
+      });
+    }
+
+    /* ---------- Role-aware signup routing ---------- */
+    const signupRoleInputs = document.querySelectorAll('input[name="signupRole"]');
+    const signupRoleNote = document.getElementById('signupRoleNote');
+    const signupSubmitBtn = document.getElementById('signupSubmitBtn');
+
+    function updateSignupRoleUI(){
+      const selected = document.querySelector('input[name="signupRole"]:checked').value;
+      if(selected === 'admin'){
+        signupRoleNote.textContent = 'Creating an admin account';
+        signupSubmitBtn.textContent = 'Create Admin Account →';
+      } else {
+        signupRoleNote.textContent = 'Creating a customer account';
+        signupSubmitBtn.textContent = 'Create Account →';
+      }
+    }
+    if(signupRoleInputs.length){
+      signupRoleInputs.forEach(r=>r.addEventListener('change', updateSignupRoleUI));
+      updateSignupRoleUI();
+    }
+
+    /* ---------- Signup validation helpers ---------- */
+ const NAME_RE = /^[A-Za-z][A-Za-z\s'-]{0,39}$/;                          // letters, spaces, hyphens, apostrophes, 1-40 chars
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;                 // basic email shape
+    const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;           // 8+ chars, at least 1 letter + 1 number
+
+    /* ---------- Live input filtering — block non-letter characters as you type ---------- */
+/* ---------- Live input filtering — block non-letter characters as you type ---------- */
+    function restrictToLetters(input, errorId){
+      input.addEventListener('input', function(){
+        const cleaned = this.value.replace(/[^A-Za-z\s'-]/g, '');
+        if(cleaned !== this.value){
+          this.value = cleaned;
+        }
+        // Clear the stale error as soon as the user edits the field
+        const err = document.getElementById(errorId);
+        if(err){
+          this.closest('.field').classList.remove('has-error');
+          err.textContent = '';
+        }
+      });
+    }
+    restrictToLetters(document.getElementById('signupFirstName'), 'errFirstName');
+    restrictToLetters(document.getElementById('signupLastName'), 'errLastName');
+
+    function setFieldError(inputId, errorId, message){
+      const input = document.getElementById(inputId);
+      const err = document.getElementById(errorId);
+      input.closest('.field').classList.add('has-error');
+      err.textContent = message;
+    }
+    function clearFieldError(inputId, errorId){
+      const input = document.getElementById(inputId);
+      const err = document.getElementById(errorId);
+      input.closest('.field').classList.remove('has-error');
+      err.textContent = '';
+    }
+
+    const signupForm = document.getElementById('signupForm');
+    if(signupForm){
+      signupForm.addEventListener('submit', function(e){
+        e.preventDefault();
+
+        const selected = document.querySelector('input[name="signupRole"]:checked').value;
+        const firstName = document.getElementById('signupFirstName').value.trim();
+        const lastName = document.getElementById('signupLastName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('signupConfirmPassword').value;
+        const agree = document.getElementById('agreeTerms').checked;
+
+        let isValid = true;
+
+        // First name — text only
+        if(!NAME_RE.test(firstName)){
+          setFieldError('signupFirstName','errFirstName','Enter a valid first name (letters only).');
+          isValid = false;
+        } else {
+          clearFieldError('signupFirstName','errFirstName');
+        }
+
+        // Last name — text only
+        if(!NAME_RE.test(lastName)){
+          setFieldError('signupLastName','errLastName','Enter a valid last name (letters only).');
+          isValid = false;
+        } else {
+          clearFieldError('signupLastName','errLastName');
+        }
+
+        // Email
+        if(!EMAIL_RE.test(email)){
+          setFieldError('signupEmail','errEmail','Enter a valid email address.');
+          isValid = false;
+        } else {
+          clearFieldError('signupEmail','errEmail');
+        }
+
+        // Password — needs a number + letter, 8+ chars
+        if(!PASSWORD_RE.test(password)){
+          setFieldError('signupPassword','errPassword','Min 8 characters, with at least 1 letter and 1 number.');
+          isValid = false;
+        } else {
+          clearFieldError('signupPassword','errPassword');
+        }
+
+        // Confirm password
+        if(!confirmPassword || confirmPassword !== password){
+          setFieldError('signupConfirmPassword','errConfirmPassword','Passwords do not match.');
+          isValid = false;
+        } else {
+          clearFieldError('signupConfirmPassword','errConfirmPassword');
+        }
+
+        // Terms checkbox
+        const termsErr = document.getElementById('errTerms');
+        if(!agree){
+          termsErr.textContent = 'You must agree to the Terms & Privacy Policy.';
+          isValid = false;
+        } else {
+          termsErr.textContent = '';
+        }
+
+        if(!isValid) return;
+
+        // ---- All valid: "create" the account, then reset the form ----
+        const name = (firstName || lastName) ? (firstName + ' ' + lastName).trim() : nameFromEmail(email);
+        try{
+          sessionStorage.setItem('stackly_signup_name', name);
+        }catch(err){}
+
+        signupForm.reset();
+        ['signupFirstName','signupLastName','signupEmail','signupPassword','signupConfirmPassword']
+          .forEach(id => document.getElementById(id).closest('.field').classList.remove('has-error'));
+        document.querySelectorAll('#signupForm .field-error').forEach(el => el.textContent = '');
+        document.getElementById('signupRoleUser').checked = true;
+        updateSignupRoleUI();
+
+        const successNote = document.getElementById('signupSuccessNote');
+        successNote.textContent = 'Account created! Please log in.';
+        successNote.style.display = 'block';
+
+        switchAuthTab('login');
+        document.getElementById('loginEmail').value = email;
+
+        setTimeout(()=>{ successNote.style.display = 'none'; }, 4000);
+      });
+    }
+      function error(){
+  window.location.href = "./404.html";
+}
+</script>
+</body>
+</html>

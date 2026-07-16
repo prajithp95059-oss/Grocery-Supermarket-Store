@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Stackly Grocery & Supermarket</title>
+<meta name="description" content="Recipes, farm visits, and stories from the Stackly journal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+    :root{
+      --forest-dark:#0F2E1F;
+      --forest:#1E4B32;
+      --leaf:#3F8555;
+      --leaf-light:#6FA96F;
+      --gold:#E3B23C;
+      --tangerine:#E8631E;
+      --cream:#FBF7EC;
+      --paper:#F2E9D6;
+      --kraft:#C9A66B;
+      --kraft-dark:#8A6C3F;
+      --ink:#1B1B15;
+      --ink-soft:#4A4A3E;
+      --line:rgba(27,27,21,.12);
+      --white:#FFFFFF;
+      --font-display:'Fraunces',serif;
+      --font-body:'Inter',sans-serif;
+      --font-mono:'Space Mono',monospace;
+      --radius:18px;
+      --shadow-soft:0 20px 50px -20px rgba(15,46,31,.35);
+      --shadow-card:0 10px 30px -12px rgba(27,27,21,.25);
+    }
+    *,*::before,*::after{box-sizing:border-box;}
+   html{scroll-behavior:smooth;overflow-x:hidden;width:100%;}
+    body{
+      margin:0;
+      font-family:var(--font-body);
+      background:var(--cream);
+      color:var(--ink);
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+    img{max-width:100%;display:block;}
+    a{color:inherit;text-decoration:none;}
+    ul{list-style:none;margin:0;padding:0;}
+    h1,h2,h3,h4{font-family:var(--font-display);margin:0;font-weight:600;letter-spacing:-.01em;}
+    p{margin:0;line-height:1.65;color:var(--ink-soft);}
+    button{font-family:inherit;cursor:pointer;}
+    :focus-visible{outline:3px solid var(--tangerine);outline-offset:3px;}
+    .wrap{max-width:1600px;margin:0 auto;padding:0 clamp(24px,4vw,64px);}
+    .eyebrow{
+      font-family:var(--font-mono);
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-size:12.5px;
+      color:var(--leaf);
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .eyebrow::before{content:'';width:22px;height:1px;background:var(--leaf);}
+
+    /* ---------- BACKGROUND CANVAS (webflow-style floating produce blobs) ---------- */
+    #bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.55;}
+    .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+    /* ---------- HEADER / NAV ---------- */
+    header.site{
+      position:fixed;top:0;left:0;right:0;z-index:100;
+      padding:22px 0;
+      transition:padding .4s ease,background .4s ease,box-shadow .4s ease;
+    }
+    header.site.scrolled{
+      padding:12px 0;
+      background:rgba(251,247,236,.88);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      box-shadow:0 8px 30px -18px rgba(27,27,21,.3);
+      border-bottom:1px solid var(--line);
+    }
+    nav.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+    .logo{display:flex;align-items:center;gap:2px;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--forest-dark);flex-shrink:0;}
+    .mark-logo{width:36px;height:36px;border-radius:10px;object-fit:contain;flex-shrink:0;}
+    .nav-links{display:flex;align-items:center;gap:2px;}
+    .nav-links a{
+      padding:10px 16px;font-size:14.5px;font-weight:500;color:var(--ink);
+      position:relative;border-radius:100px;
+    }
+    .nav-links a::after{
+      content:'';position:absolute;left:16px;right:16px;bottom:6px;height:1px;background:var(--tangerine);
+      transform:scaleX(0);transform-origin:right;transition:transform .35s ease;
+    }
+    .nav-links a:hover::after,.nav-links a.active::after{transform:scaleX(1);transform-origin:left;}
+    .nav-links a.active{color:var(--forest-dark);font-weight:700;}
+    .nav-cta{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .nav-mobile-actions{display:none;}
+    .nb-text{display:inline;}
+    .burger{
+      display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;
+      background:none;border:none;width:40px;height:40px;padding:0;flex-shrink:0;z-index:200;position:relative;
+    }
+    .burger span{width:22px;height:2px;background:var(--ink);border-radius:2px;transition:transform .35s ease,opacity .25s ease;}
+    header.site.scrolled .burger span{background:var(--ink);}
+    .nav-overlay{
+      position:fixed;inset:0;background:rgba(15,46,31,.55);
+      opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:140;
+    }
+    .nav-overlay.show{opacity:1;pointer-events:auto;}
+
+    /* ---------- BUTTONS ---------- */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px 28px;border-radius:100px;font-weight:600;font-size:14.5px;
+      border:1px solid transparent;position:relative;overflow:hidden;isolation:isolate;
+      transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease;
+      white-space:nowrap;
+    }
+    .btn:active{transform:scale(.96);}
+    .btn-primary{background:var(--tangerine);color:var(--white);box-shadow:0 10px 25px -10px rgba(232,99,30,.6);}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 30px -10px rgba(232,99,30,.7);}
+    .btn-dark{background:var(--forest-dark);color:var(--cream);}
+    .btn-dark:hover{transform:translateY(-3px);background:var(--forest);}
+    .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink);}
+    .btn-ghost:hover{border-color:var(--forest);background:rgba(63,133,85,.06);}
+    .btn-sm{padding:10px 18px;font-size:13px;}
+    .btn-block{width:100%;}
+
+    /* ---------- STAMP BADGE (signature element) ---------- */
+    .stamp{
+      width:108px;height:108px;border-radius:50%;
+      border:2px dashed var(--forest);
+      display:grid;place-items:center;text-align:center;
+      font-family:var(--font-mono);color:var(--forest);
+      transform:rotate(-9deg);
+      font-size:11px;text-transform:uppercase;letter-spacing:.08em;line-height:1.5;
+      flex-shrink:0;background:rgba(63,133,85,.05);
+    }
+    .stamp b{display:block;font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--tangerine);letter-spacing:0;text-transform:none;}
+    .stamp.gold{border-color:var(--gold);color:var(--kraft-dark);}
+    .stamp.gold b{color:var(--gold);}
+
+    /* ---------- CRATE DIVIDER (signature element) ---------- */
+    .crate-divider{width:100%;height:64px;display:block;color:var(--cream);}
+    .crate-divider path{fill:currentColor;}
+    .section{position:relative;padding:120px 0;z-index:2;}
+    .section.tight{padding:80px 0;}
+    .section-dark{background:var(--forest-dark);color:var(--cream);}
+    .section-dark p{color:rgba(251,247,236,.72);}
+    .section-dark h2,.section-dark h3,.section-dark h4{color:var(--cream);}
+    .section-paper{background:var(--paper);}
+
+    .head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px;flex-wrap:wrap;}
+    .head-row h2{font-size:clamp(32px,4.2vw,52px);max-width:640px;}
+    .head-row p{max-width:420px;}
+
+    /* split-text hero utility */
+    .split-line{overflow:hidden;display:block;}
+    .split-line > span{display:inline-block;will-change:transform;}
+    .char{display:inline-block;will-change:transform,opacity;}
+
+    /* reveal utility (scroll trigger targets) */
+    .reveal{opacity:0;transform:translateY(40px);}
+    .fade-img{clip-path:inset(0 0 100% 0);}
+
+    /* grid helpers */
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+
+    /* card */
+    .card{
+      background:var(--white);border-radius:var(--radius);padding:28px;
+      box-shadow:var(--shadow-card);border:1px solid var(--line);
+      transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease;
+    }
+    .card:hover{transform:translateY(-8px);box-shadow:0 30px 50px -20px rgba(27,27,21,.3);}
+
+    /* marquee */
+    .marquee{overflow:hidden;white-space:nowrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0;}
+    .marquee-track{display:inline-flex;gap:60px;animation:marquee 26s linear infinite;}
+    .marquee-track span{font-family:var(--font-display);font-size:26px;color:var(--ink);opacity:.5;display:inline-flex;align-items:center;gap:16px;}
+    .marquee-track span i{width:6px;height:6px;border-radius:50%;background:var(--tangerine);display:inline-block;opacity:1;}
+    @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+    /* product / menu card */
+    .product-card{background:var(--white);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-card);position:relative;transition:transform .4s ease,box-shadow .4s ease;}
+    .product-card:hover{transform:translateY(-6px);box-shadow:0 30px 45px -20px rgba(27,27,21,.28);}
+    .product-media{aspect-ratio:1/0.85;overflow:hidden;position:relative;background:var(--paper);}
+    .product-media img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1);}
+    .product-card:hover .product-media img{transform:scale(1.09);}
+    .tag{position:absolute;top:14px;left:14px;background:var(--forest-dark);color:var(--gold);font-family:var(--font-mono);font-size:11px;padding:6px 12px;border-radius:100px;text-transform:uppercase;letter-spacing:.06em;z-index:2;}
+    .product-body{padding:20px;}
+    .product-body h4{font-size:18px;margin-bottom:6px;}
+    .product-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+    .price{font-family:var(--font-mono);font-weight:700;color:var(--tangerine);font-size:17px;}
+    .price s{color:var(--ink-soft);font-weight:400;margin-right:6px;opacity:.5;}
+    .add-btn{width:42px;height:42px;border-radius:50%;background:var(--forest);color:var(--cream);border:none;font-size:20px;display:grid;place-items:center;transition:transform .3s ease,background .3s ease;}
+    .add-btn:hover{transform:scale(1.1) rotate(90deg);background:var(--tangerine);}
+    .rating{font-family:var(--font-mono);font-size:12px;color:var(--kraft-dark);display:flex;gap:4px;align-items:center;}
+
+    /* forms */
+    .field{margin-bottom:20px;}
+    .field label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
+    .field input,.field textarea,.field select{
+      width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--line);
+      background:var(--white);font-family:var(--font-body);font-size:15px;color:var(--ink);
+      transition:border-color .3s ease,box-shadow .3s ease;
+    }
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--leaf);box-shadow:0 0 0 4px rgba(63,133,85,.12);outline:none;}
+    .field textarea{resize:vertical;min-height:130px;}
+
+    /* footer */
+    footer.site{background:var(--forest-dark);color:rgba(251,247,236,.75);padding:90px 0 30px;position:relative;z-index:2;}
+    footer.site h4{color:var(--cream);font-size:15px;margin-bottom:18px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+    footer.site a{color:rgba(251,247,236,.7);font-size:14.5px;transition:color .25s ease,padding-left .25s ease;display:inline-block;}
+    footer.site a:hover{color:var(--gold);padding-left:4px;}
+ footer.site .logo{display:inline-flex;flex-direction:row;align-items:center;flex-wrap:nowrap;gap:2px;font-size:28px;}
+    footer.site .mark-logo{width:46px;height:46px;}
+    .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.3fr;gap:40px;margin-bottom:70px;}
+    .foot-bottom{border-top:1px solid rgba(251,247,236,.12);padding-top:26px;display:flex;justify-content:space-between;font-size:13px;color:rgba(251,247,236,.5);flex-wrap:wrap;gap:12px;}
+
+       
+
+.social-row{display:flex;gap:12px;margin-top:18px;}
+.social-row a{
+  position:relative;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  border:1px solid rgba(251,247,236,.4);
+  color:var(--cream);
+  flex-shrink:0;
+  transition:transform .3s ease,background .3s ease,color .3s ease,border-color .3s ease;
+}
+.social-row a svg{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:16px;
+  height:16px;
+}
+
+
+    .contact-list{display:flex;flex-direction:column;gap:16px;}
+    .contact-list li{display:flex;align-items:center;gap:12px;font-size:14.5px;color:rgba(251,247,236,.78);}
+    .contact-list svg{width:17px;height:17px;flex-shrink:0;color:var(--gold);}
+
+    /* cursor blob */
+    .cursor-dot{position:fixed;width:14px;height:14px;border-radius:50%;background:var(--tangerine);pointer-events:none;z-index:9999;mix-blend-mode:normal;transform:translate(-50%,-50%);transition:transform .15s ease;opacity:0;}
+
+    /* page hero generic */
+    .page-hero{padding:210px 0 100px;position:relative;z-index:2;overflow:hidden;}
+    .page-hero::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      background-image:url('./assets/blog\ bg.webp');
+      background-size:cover;
+      background-position:center;
+      opacity:.18;
+      z-index:0;
+      pointer-events:none;
+    }
+    .page-hero .wrap{position:relative;z-index:1;}
+    .breadcrumb{font-family:var(--font-mono);font-size:12.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--leaf);margin-bottom:20px;display:flex;gap:8px;align-items:center;}
+
+    /* stat block */
+    .stat b{display:block;font-family:var(--font-display);font-size:clamp(36px,4vw,54px);color:var(--forest-dark);}
+    .stat span{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);}
+
+    /* utility */
+    .center{text-align:center;}
+    .mt{margin-top:40px;}
+    .flex-c{display:flex;align-items:center;gap:14px;}
+    ::selection{background:var(--gold);color:var(--forest-dark);}
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width:1080px){
+      .wrap{padding:0 28px;}
+      .grid-4{grid-template-columns:repeat(2,1fr);}
+      .foot-grid{grid-template-columns:1fr 1fr;gap:36px 24px;}
+    }
+    @media (max-width:899px){
+      .nav-links{
+        position:fixed;top:0;right:0;height:100vh;width:min(78vw,320px);
+        background:var(--forest-dark);flex-direction:column;justify-content:flex-start;align-items:flex-start;
+        padding:110px 32px 40px;gap:2px;overflow-y:auto;
+        transform:translateX(100%);transition:transform .5s cubic-bezier(.2,.8,.2,1);z-index:150;
+      }
+      .nav-links.open{transform:translateX(0);}
+      .nav-links li{width:100%;}
+      .nav-links a{color:var(--cream);font-size:18px;width:100%;padding:14px 6px;display:block;}
+      .nav-links a::after{display:none;}
+      .nav-links a.active{color:var(--gold);font-weight:700;}
+      header.site.scrolled .nav-links a{color:var(--cream);}
+      header.site.scrolled .nav-links a.active{color:var(--gold);}
+      .burger{display:flex;}
+      .nav-cta .btn-ghost{display:none;}
+      .nav-cta .nav-order-btn{display:none;}
+      .nav-mobile-actions{
+        display:flex;flex-direction:column;align-items:center;gap:12px;
+        width:100%;margin-top:16px;padding-top:18px;
+        border-top:1px solid rgba(251,247,236,.15);
+      }
+      .nav-mobile-actions .btn{width:100%;}
+      .nav-mobile-actions a.btn-ghost{width:auto;min-width:170px;padding:14px 32px;}
+      .nav-mobile-actions .btn-ghost{border-color:rgba(251,247,236,.3);color:var(--cream);background:transparent;}
+      .grid-2{grid-template-columns:1fr;gap:36px;}
+      .grid-3{grid-template-columns:1fr 1fr;}
+      .foot-grid{grid-template-columns:1fr 1fr;}
+    }
+    @media (max-width:480px){
+      .nb-text{display:none;}
+      .nav-order-btn{padding:11px;border-radius:50%;}
+      .logo{font-size:19px;}
+      .mark-logo{width:30px;height:30px;}
+      .nav-cta{gap:8px;}
+    }
+    @media (max-width:640px){
+      .wrap{padding:0 20px;}
+      .section{padding:80px 0;}
+      .page-hero{padding:150px 0 60px;}
+      .grid-3{grid-template-columns:1fr;}
+      .grid-4{grid-template-columns:1fr;gap:16px;}
+      .head-row{margin-bottom:36px;}
+      .foot-grid{grid-template-columns:1fr;gap:32px;margin-bottom:40px;}
+      .marquee-track span{font-size:19px;}
+      .stamp{width:88px;height:88px;font-size:9.5px;}
+      .stamp b{font-size:15px;}
+        .filter-tabs{width:100%;}
+  .tab{padding:8px 14px;font-size:12.5px;}
+    }
+
+    @media (max-width:380px){
+      .wrap{padding:0 16px;}
+      .logo{font-size:17px;}
+      .nav-links{width:min(82vw,280px);padding:100px 24px 30px;}
+    }
+    .featured-post{display:grid;grid-template-columns:1.2fr 1fr;gap:0;border-radius:26px;overflow:hidden;box-shadow:var(--shadow-soft);background:var(--white);border:1px solid var(--line);}
+    .fp-img{aspect-ratio:16/11;overflow:hidden;}
+    .fp-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;}
+    .featured-post:hover .fp-img img{transform:scale(1.06);}
+    .fp-copy{padding:44px;display:flex;flex-direction:column;justify-content:center;}
+    .fp-copy h2{font-size:clamp(24px,2.6vw,32px);margin:12px 0 16px;}
+    .fp-meta{display:flex;align-items:center;gap:12px;margin-top:24px;}
+    .fp-meta img{width:38px;height:38px;border-radius:50%;object-fit:cover;}
+    .fp-meta span{font-size:13px;color:var(--ink-soft);font-family:var(--font-mono);}
+
+    .blog-meta{display:block;font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);margin-top:8px;}
+    .filter-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+    .tab{padding:9px 18px;border-radius:100px;border:1px solid var(--line);background:var(--white);font-size:13.5px;font-weight:600;color:var(--ink-soft);transition:.3s;}
+    .tab.active,.tab:hover{background:var(--forest-dark);color:var(--cream);border-color:var(--forest-dark);}
+    .newsletter-form{display:flex;gap:10px;}
+    .newsletter-form input{flex:1;padding:16px 18px;border-radius:100px;border:none;font-family:var(--font-body);font-size:14.5px;}
+
+    @media (max-width:900px){
+      .featured-post{grid-template-columns:1fr;}
+      .fp-copy{padding:30px;}
+    }
+    @media (max-width:640px){
+      .newsletter-form{flex-direction:column;}
+    }
+    .contact-heading{font-family:var(--font-display);font-size:19px;font-weight:800;color:var(--cream);position:relative;padding-bottom:14px;margin-bottom:20px;}
+    .contact-heading::after{content:'';position:absolute;left:0;bottom:0;width:38px;height:3px;background:var(--gold);border-radius:2px;}
+
+    /* ---------- NEW: blog-card base styling (grid items) ---------- */
+    .blog-card{display:block;background:var(--white);border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-card);transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease;}
+    .blog-card:hover{transform:translateY(-6px);box-shadow:0 30px 45px -20px rgba(27,27,21,.28);}
+    .blog-img{aspect-ratio:4/2.9;overflow:hidden;}
+    .blog-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;}
+    .blog-card:hover .blog-img img{transform:scale(1.07);}
+    .blog-tag{display:inline-block;margin:18px 20px 0;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--tangerine);font-weight:700;}
+    .blog-card h4{padding:8px 20px 0;font-size:19px;line-height:1.3;}
+    .blog-card p{padding:10px 20px 0;font-size:14px;}
+    .blog-card .blog-meta{padding:0 20px 20px;}
+
+    /* ---------- NEW: popular posts sidebar ---------- */
+    .blog-layout{display:grid;grid-template-columns:2.2fr 1fr;gap:56px;align-items:start;}
+    .sidebar-block{background:var(--white);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-card);padding:28px;}
+    .sidebar-block + .sidebar-block{margin-top:28px;}
+    .sidebar-block h3{font-size:19px;margin-bottom:20px;}
+    .popular-item{display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+    .popular-item:last-child{border-bottom:none;padding-bottom:0;}
+    .popular-item:first-child{padding-top:0;}
+    .popular-item img{width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0;}
+    .popular-item h5{font-family:var(--font-display);font-size:14.5px;font-weight:600;line-height:1.3;margin-bottom:4px;}
+    .popular-item span{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;}
+    .tag-cloud{display:flex;flex-wrap:wrap;gap:8px;}
+    .tag-pill{padding:7px 14px;border-radius:100px;background:var(--paper);border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--ink-soft);}
+    .tag-pill:hover{background:var(--forest-dark);color:var(--cream);border-color:var(--forest-dark);}
+    .sidebar-cta{background:var(--forest-dark);color:var(--cream);border-radius:var(--radius);padding:28px;text-align:center;}
+    .sidebar-cta p{color:rgba(251,247,236,.75);margin:10px 0 18px;font-size:14px;}
+    @media (max-width:1080px){
+      .blog-layout{grid-template-columns:1fr;}
+    }
+
+    /* ---------- NEW: load more button ---------- */
+    .load-more-wrap{display:flex;justify-content:center;margin-top:48px;}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="grain"></div>
+<header class="site">
+  <div class="wrap">
+    <nav class="bar">
+      <a href="index.html" class="logo"><img src="stackly-logo.webp" alt="Stackly logo" class="mark-logo">Stackly</a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="">Home</a></li>
+        <li><a href="about.html" class="">About</a></li>
+        <li><a href="services.html" class="">Services</a></li>
+        <li><a href="menu.html" class="">Shop</a></li>
+        <li><a href="blog.html" class="active">Blog</a></li>
+        <li><a href="contact.html" class="">Contact</a></li>
+        <li class="nav-mobile-actions">
+          <a href="login.html" class="btn btn-ghost">Log in</a>
+          <a href="./404.html" class="btn btn-primary">🛒 Order Now</a>
+        </li>
+      </ul>
+      <div class="nav-cta">
+        <a href="login.html" class="btn btn-ghost btn-sm nav-login-btn">Log in</a>
+        <a href="./404.html" class="btn btn-primary btn-sm nav-order-btn"><span class="nb-icon">🛒</span><span class="nb-text">Order Now</span></a>
+        <button class="burger" id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+  </div>
+  <div class="nav-overlay" id="navOverlay"></div>
+</header>
+<section class="page-hero" style="padding-bottom:60px;">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="index.html">Home</a> / Blog</div>
+    <h1 style="max-width:760px;"><span data-split style="font-size:clamp(34px,5vw,58px);">The Stackly Journal.</span></h1>
+    <p class="mt" style="max-width:540px;font-size:16.5px;" data-hero-el>Recipes, farm visits, and the occasional rant about supermarket tomatoes — written by our team and the farmers we work with.</p>
+  </div>
+</section>
+
+<section class="section tight">
+  <div class="wrap">
+    <a href="#" class="featured-post reveal">
+      <div class="fp-img"><img src="./assets/fresh bread.webp" alt="Baker pulling fresh bread from oven"></div>
+      <div class="fp-copy">
+        <span class="blog-tag" style="margin:0;">Featured · Bakery</span>
+        <h2>Inside our 4am sourdough shift</h2>
+        <p>Six years, one starter culture, zero shortcuts. We spent a week with our head baker to understand why the loaf never changes — and why that's the point.</p>
+        <div class="fp-meta"><img src="./assets/marcus.webp" alt="Author portrait"><span>Marcus Webb · 9 min read · July 2, 2026</span></div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<section class="section section-paper">
+  <div class="wrap">
+    <div class="head-row">
+      <div><div class="eyebrow">Browse Topics</div><h2>Every story, sorted.</h2></div>
+      <div class="filter-tabs">
+        <button class="tab active" data-filter="all">All</button>
+        <button class="tab" data-filter="recipes">Recipes</button>
+        <button class="tab" data-filter="farms">Farm Visits</button>
+        <button class="tab" data-filter="sustainability">Sustainability</button>
+        <button class="tab" data-filter="tips">Kitchen Tips</button>
+        <button class="tab" data-filter="community">Community</button>
+      </div>
+    </div>
+
+    <div class="blog-layout">
+      <div>
+        <div class="grid-3 reveal-group" id="blogGrid">
+          <a href="./404.html" class="blog-card reveal-item" data-cat="recipes">
+            <div class="blog-img"><img src="./assets/seasonal vegetables.webp" alt="Seasonal vegetable spread"></div>
+            <span class="blog-tag">Seasonal Eating</span><h4>What's actually in season this month</h4>
+            <p>A farmer's-eye guide to shopping with the calendar, not against it.</p>
+            <span class="blog-meta">6 min read · June 28, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="sustainability">
+            <div class="blog-img"><img src="./assets/women holding basket.webp" alt="Woman holding reusable produce basket"></div>
+            <span class="blog-tag">Sustainability</span><h4>Why we still deliver in reusable crates</h4>
+            <p>The unglamorous logistics behind cutting our cardboard use by 80%.</p>
+            <span class="blog-meta">5 min read · June 24, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="farms">
+            <div class="blog-img"><img src="./assets/famer walking in the field.webp" alt="Farmer walking through a field"></div>
+            <span class="blog-tag">Farm Visit</span><h4>A morning at Rooted Acres Farm</h4>
+            <p>We joined the harvest crew before sunrise to see where your carrots start.</p>
+            <span class="blog-meta">8 min read · June 20, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="recipes">
+            <div class="blog-img"><img src="./assets/pasta.webp" alt="Fresh pasta dish with tomatoes"></div>
+            <span class="blog-tag">Recipe</span><h4>Five-ingredient heirloom tomato pasta</h4>
+            <p>When the produce is this good, the recipe should get out of its way.</p>
+            <span class="blog-meta">4 min read · June 17, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="sustainability">
+            <div class="blog-img"><img src="./assets/soil com.webp" alt="Compost and soil close up"></div>
+            <span class="blog-tag">Sustainability</span><h4>What happens to the produce we don't sell</h4>
+            <p>Inside our zero-waste partnership with three regional food banks.</p>
+            <span class="blog-meta">7 min read · June 12, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="farms">
+            <div class="blog-img"><img src="./assets/cow.webp" alt="Dairy cows grazing pasture"></div>
+            <span class="blog-tag">Farm Visit</span><h4>Meet the herd behind your morning milk</h4>
+            <p>Pasture-raised isn't a label for us — it's forty acres you can visit.</p>
+            <span class="blog-meta">6 min read · June 8, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="recipes">
+            <div class="blog-img"><img src="./assets/soup.webp" alt="Soup in a bowl with bread"></div>
+            <span class="blog-tag">Recipe</span><h4>Root vegetable soup for cold snaps</h4>
+            <p>Everything in this pot came from within 60 miles of your kitchen.</p>
+            <span class="blog-meta">5 min read · June 3, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="sustainability">
+            <div class="blog-img"><img src="./assets/home float.webp" alt="Crates of vegetables"></div>
+            <span class="blog-tag">Sustainability</span><h4>The real cost of "always in stock"</h4>
+            <p>Why we'd rather sell out of strawberries than fly them in off-season.</p>
+            <span class="blog-meta">6 min read · May 29, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="farms">
+            <div class="blog-img"><img src="./assets/bee keeper.webp" alt="Beekeeper tending hives"></div>
+            <span class="blog-tag">Farm Visit</span><h4>The beekeepers behind our raw honey</h4>
+            <p>A third-generation apiary and the delicate art of not rushing bees.</p>
+            <span class="blog-meta">7 min read · May 25, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="tips">
+            <div class="blog-img"><img src="./assets/knife.webp" alt="Fresh herbs and knife on cutting board">
+</div>
+            <span class="blog-tag">Kitchen Tips</span><h4>Knife skills that actually matter at home</h4>
+            <p>Forget the culinary school drills — here's the 20% of knife work that does 80% of the job.</p>
+            <span class="blog-meta">6 min read · May 20, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="tips">
+            <div class="blog-img"><img src="./assets/store greens.webp" alt="Produce stored in fridge drawers"></div>
+            <span class="blog-tag">Kitchen Tips</span><h4>How to store greens so they last two weeks</h4>
+            <p>The damp-towel trick our produce buyer swears by — and the one thing that ruins it.</p>
+            <span class="blog-meta">4 min read · May 16, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="community">
+            <div class="blog-img"><img src="./assets/fresh.webp" alt="Neighborhood farmers market stall"></div>
+            <span class="blog-tag">Community</span><h4>Meet the vendors at our Salem pop-up market</h4>
+            <p>Every Saturday, six local makers set up outside our Salem store. Here's who they are.</p>
+            <span class="blog-meta">5 min read · May 11, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="recipes">
+            <div class="blog-img"><img src="./assets/cookies.webp" alt="Fresh baked cookies on cooling rack"></div>
+            <span class="blog-tag">Recipe</span><h4>The bakery's brown-butter cookie, at home</h4>
+            <p>Our most-requested recipe of the year, finally written down properly.</p>
+            <span class="blog-meta">5 min read · May 7, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="tips">
+            <div class="blog-img"><img src="./assets/meal prep.webp" alt="Meal prep containers with vegetables"></div>
+            <span class="blog-tag">Kitchen Tips</span><h4>A Sunday prep routine that survives a busy week</h4>
+            <p>Ninety minutes, five meals, one cutting board. Here's the exact order we do it in.</p>
+            <span class="blog-meta">7 min read · May 2, 2026</span>
+          </a>
+          <a href="./404.html" class="blog-card reveal-item" data-cat="community">
+            <div class="blog-img"><img src="./assets/volunteer.webp" alt="Volunteers packing food donation boxes"></div>
+            <span class="blog-tag">Community</span><h4>1,200 meals later: our food bank partnership, one year in</h4>
+            <p>What we learned turning surplus produce into a standing weekly donation route.</p>
+            <span class="blog-meta">6 min read · April 27, 2026</span>
+          </a>
+        </div>
+
+        <div class="load-more-wrap">
+          <button class="btn btn-dark" id="loadMoreBtn">Load More Stories</button>
+        </div>
+      </div>
+
+      <aside>
+        <div class="sidebar-block">
+          <h3>Most Read</h3>
+          <div class="popular-item">
+            <img src="./assets/bread on counter.webp" alt="Sourdough bread">
+            <div><h5>Inside our 4am sourdough shift</h5><span>9 min read</span></div>
+          </div>
+          <div class="popular-item">
+            <img src="assets/famer walking in the field.webp" alt="Farm harvest">
+            <div><h5>A morning at Rooted Acres Farm</h5><span>8 min read</span></div>
+          </div>
+          <div class="popular-item">
+            <img src="./assets/soil com.webp" alt="Composting soil">
+            <div><h5>What happens to the produce we don't sell</h5><span>7 min read</span></div>
+          </div>
+          <div class="popular-item">
+            <img src="./assets/bee keeper.webp" alt="Beekeeper">
+            <div><h5>The beekeepers behind our raw honey</h5><span>7 min read</span></div>
+          </div>
+        </div>
+
+        <div class="sidebar-block">
+          <h3>Browse by Tag</h3>
+          <div class="tag-cloud">
+            <a href="./404.html" class="tag-pill">Seasonal</a>
+            <a href="./404.html" class="tag-pill">Bakery</a>
+            <a href="./404.html" class="tag-pill">Zero Waste</a>
+            <a href="./404.html" class="tag-pill">Dairy</a>
+            <a href="./404.html" class="tag-pill">Weeknight Dinners</a>
+            <a href="./404.html" class="tag-pill">Local Farms</a>
+            <a href="./404.html" class="tag-pill">Meal Prep</a>
+            <a href="./404.html" class="tag-pill">Salem</a>
+            <a href="./404.html" class="tag-pill">Chennai</a>
+          </div>
+        </div>
+
+        <div class="sidebar-block sidebar-cta">
+          <h3>Get the Journal weekly</h3>
+          <p>One email, every Tuesday. Recipes, farm notes, and what's freshest right now.</p>
+          <form style="display:flex;flex-direction:column;gap:10px;">
+            <input type="email" placeholder="you@email.com" required style="padding:13px 16px;border-radius:100px;border:none;font-family:var(--font-body);font-size:14px;">
+            <button type="submit" class="btn btn-primary btn-block">Subscribe</button>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+  <a href="index.html" class="logo" style="color:var(--cream);margin-top:-6px;margin-bottom:8px;">
+    <img src="stackly-logo.webp" alt="Stackly logo" class="mark-logo">Stackly
+  </a>
+  <p style="max-width:280px;margin-top:6px;color:rgba(251,247,236,.7);">
+    Farm-fresh groceries, hand-picked daily and delivered to your door in under 45 minutes. Rooted in real produce, grown by real people.
+  </p>
+<div class="social-row">
+  <a href="./404.html" aria-label="X (Twitter)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.6 10.6 20.4 3h-1.6l-5.9 6.6L8.1 3H3l7.1 9.9L3 21h1.6l6.2-7 5 7H21l-7.4-10.4Zm-2.2 2.5-.7-1L5 4.2h2.5l4.6 6.4.7 1 6 8.3h-2.5l-4.9-6.8Z"/></svg></a>
+  <a href="./404.html" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.35-1.85 3.59 0 4.25 2.36 4.25 5.43v6.31ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg></a>
+  <a href="./404.html" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-2.72 0-3.06.01-4.13.06-1.06.05-1.79.22-2.43.47a4.9 4.9 0 0 0-1.77 1.15A4.9 4.9 0 0 0 2.53 5.44c-.25.64-.42 1.37-.47 2.43C2.01 8.94 2 9.28 2 12s.01 3.06.06 4.13c.05 1.06.22 1.79.47 2.43a4.9 4.9 0 0 0 1.15 1.77 4.9 4.9 0 0 0 1.77 1.15c.64.25 1.37.42 2.43.47C8.94 21.99 9.28 22 12 22s3.06-.01 4.13-.06c1.06-.05 1.79-.22 2.43-.47a4.9 4.9 0 0 0 1.77-1.15 4.9 4.9 0 0 0 1.15-1.77c.25-.64.42-1.37.47-2.43.05-1.07.06-1.41.06-4.13s-.01-3.06-.06-4.13c-.05-1.06-.22-1.79-.47-2.43a4.9 4.9 0 0 0-1.15-1.77A4.9 4.9 0 0 0 18.56 2.53c-.64-.25-1.37-.42-2.43-.47C15.06 2.01 14.72 2 12 2Zm0 1.8c2.67 0 2.99.01 4.04.06.98.04 1.5.21 1.86.35.47.18.8.4 1.15.75.35.35.57.68.75 1.15.14.36.31.88.35 1.86.05 1.05.06 1.37.06 4.04s-.01 2.99-.06 4.04c-.04.98-.21 1.5-.35 1.86-.18.47-.4.8-.75 1.15-.35.35-.68.57-1.15.75-.36.14-.88.31-1.86.35-1.05.05-1.37.06-4.04.06s-2.99-.01-4.04-.06c-.98-.04-1.5-.21-1.86-.35a3.1 3.1 0 0 1-1.15-.75 3.1 3.1 0 0 1-.75-1.15c-.14-.36-.31-.88-.35-1.86-.05-1.05-.06-1.37-.06-4.04s.01-2.99.06-4.04c.04-.98.21-1.5.35-1.86.18-.47.4-.8.75-1.15.35-.35.68-.57 1.15-.75.36-.14.88-.31 1.86-.35 1.05-.05 1.37-.06 4.04-.06Zm0 3.38a4.82 4.82 0 1 0 0 9.64 4.82 4.82 0 0 0 0-9.64Zm0 7.95a3.13 3.13 0 1 1 0-6.26 3.13 3.13 0 0 1 0 6.26Zm6.14-8.14a1.13 1.13 0 1 1-2.26 0 1.13 1.13 0 0 1 2.26 0Z"/></svg></a>
+  <a href="./404.html" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.8 8.2s-.2-1.5-.8-2.1c-.8-.8-1.7-.8-2.1-.9C15.9 5 12 5 12 5h0s-3.9 0-6.9.2c-.4.05-1.3.1-2.1.9-.6.6-.8 2.1-.8 2.1S2 10 2 11.7v1.6c0 1.7.2 3.5.2 3.5s.2 1.5.8 2.1c.8.8 1.9.8 2.4.9C7.2 20 12 20 12 20s3.9 0 6.9-.2c.4-.05 1.3-.1 2.1-.9.6-.6.8-2.1.8-2.1s.2-1.7.2-3.5v-1.6c0-1.7-.2-3.5-.2-3.5ZM9.9 15V8.8l5.4 3.1-5.4 3.1Z"/></svg></a>
+</div>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul style="display:flex;flex-direction:column;gap:12px;">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="menu.html">Shop</a></li>
+          <li><a href="blog.html">Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Departments</h4>
+        <ul style="display:flex;flex-direction:column;gap:12px;">
+          <li><a href="./404.html">Fresh Produce</a></li>
+          <li><a href="./404.html">Bakery</a></li>
+          <li><a href="./404.html">Dairy & Eggs</a></li>
+          <li><a href="./404.html">Meat & Seafood</a></li>
+          <li><a href="./404.html">Pantry</a></li>
+        </ul>
+      </div>
+ 
+      <div>
+        <h4 class="contact-heading">Contact Us</h4>
+        <ul class="contact-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Salem, Tamil Nadu, India</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4.5 4.5h3.4l1.4 4.2-2 1.6a12 12 0 0 0 5.4 5.4l1.6-2 4.2 1.4v3.4c0 .9-.7 1.6-1.6 1.6C10.4 20.1 3.9 13.6 3 6.1c0-.9.7-1.6 1.6-1.6Z"/></svg>+91 98765 43210</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>info@Stacklyhub.com</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Mon – Sat : 9AM – 6PM</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Stackly Market Co. All rights reserved.</span>
+    <span>  <a href="./404.html">Privacy Policy </a> <a href="./404.html">· Terms of Service</a> <a href="./404.html">· Cookie Settings</a></span>
+    </div>
+  </div>
+</footer>
+<script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ---------- Header scroll state ---------- */
+    const header = document.querySelector('header.site');
+    if(header){
+      ScrollTrigger.create({
+        start: 'top -60',
+        end: 99999,
+        toggleClass: {targets: header, className: 'scrolled'}
+      });
+    }
+
+    /* ---------- Mobile nav ---------- */
+    const burger = document.getElementById('burgerBtn');
+    const navLinks = document.getElementById('navLinks');
+    const navOverlay = document.getElementById('navOverlay');
+
+    /* ---------- Active page fail-safe: always highlight the current page in nav ---------- */
+    (function(){
+      const current = location.pathname.split('/').pop() || 'index.html';
+      document.querySelectorAll('.nav-links a[href]').forEach(a=>{
+        const href = a.getAttribute('href');
+        if(href === current){ a.classList.add('active'); }
+        else { a.classList.remove('active'); }
+      });
+    })();
+
+    function openMobileNav(){
+      navLinks.classList.add('open');
+      burger.classList.add('active');
+      burger.setAttribute('aria-expanded','true');
+      if(navOverlay) navOverlay.classList.add('show');
+      gsap.to(burger.querySelectorAll('span'),{
+        duration:.3,
+        rotate:(i)=> i===0?45:i===1?0:-45,
+        y:(i)=> i===0?7:i===1?0:-7,
+        opacity:(i)=> i===1?0:1
+      });
+    }
+    function closeMobileNav(){
+      navLinks.classList.remove('open');
+      burger.classList.remove('active');
+      burger.setAttribute('aria-expanded','false');
+      if(navOverlay) navOverlay.classList.remove('show');
+      gsap.to(burger.querySelectorAll('span'),{duration:.3,rotate:0,y:0,opacity:1});
+    }
+    if(burger && navLinks){
+      burger.addEventListener('click', () => {
+        navLinks.classList.contains('open') ? closeMobileNav() : openMobileNav();
+      });
+      if(navOverlay){ navOverlay.addEventListener('click', closeMobileNav); }
+      navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click', closeMobileNav));
+      document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeMobileNav(); });
+    }
+
+    /* ---------- Custom cursor dot (desktop only) ---------- */
+    if(window.matchMedia('(min-width:900px) and (hover:hover)').matches){
+      const dot = document.createElement('div');
+      dot.className='cursor-dot';
+      document.body.appendChild(dot);
+      window.addEventListener('mousemove', e=>{
+        gsap.to(dot,{x:e.clientX,y:e.clientY,opacity:1,duration:.5,ease:'power3.out'});
+      });
+      document.querySelectorAll('a,button').forEach(el=>{
+        el.addEventListener('mouseenter',()=>gsap.to(dot,{scale:2.4,duration:.3}));
+        el.addEventListener('mouseleave',()=>gsap.to(dot,{scale:1,duration:.3}));
+      });
+    }
+
+    /* ---------- Split-text char/line animation (GSAP-style, no paid plugin) ---------- */
+    function splitChars(el){
+      const words = el.textContent.split(' ');
+      el.textContent='';
+      words.forEach((w,wi)=>{
+        const wordSpan=document.createElement('span');
+        wordSpan.style.display='inline-block';
+        [...w].forEach(c=>{
+          const span=document.createElement('span');
+          span.className='char';
+          span.textContent=c;
+          wordSpan.appendChild(span);
+        });
+        el.appendChild(wordSpan);
+        if(wi<words.length-1) el.appendChild(document.createTextNode('\u00A0'));
+      });
+      return el.querySelectorAll('.char');
+    }
+
+    document.querySelectorAll('[data-split]').forEach(el=>{
+      const chars = splitChars(el);
+      gsap.set(chars,{yPercent:130,opacity:0,rotate:6});
+      gsap.to(chars,{
+        yPercent:0,opacity:1,rotate:0,
+        duration:.9,ease:'power4.out',stagger:.018,
+        scrollTrigger:{trigger:el,start:'top 90%'}
+      });
+    });
+
+    document.querySelectorAll('[data-split-line]').forEach(el=>{
+      el.querySelectorAll('.split-line > span').forEach((span,i)=>{
+        gsap.set(span,{yPercent:110,opacity:0});
+        gsap.to(span,{yPercent:0,opacity:1,duration:1,ease:'power4.out',delay:i*.12,
+          scrollTrigger:{trigger:el,start:'top 92%'}});
+      });
+    });
+
+    /* ---------- Hero entrance (page load) ---------- */
+    gsap.set('[data-hero-el]',{opacity:0,y:40});
+    gsap.to('[data-hero-el]',{opacity:1,y:0,duration:1.1,stagger:.12,ease:'power3.out',delay:.15});
+
+    /* ---------- Generic scroll reveal ---------- */
+    gsap.utils.toArray('.reveal').forEach((el,i)=>{
+      gsap.to(el,{
+        opacity:1,y:0,duration:1,ease:'power3.out',
+        scrollTrigger:{trigger:el,start:'top 88%'}
+      });
+    });
+
+    gsap.utils.toArray('.fade-img').forEach(el=>{
+      gsap.to(el,{clipPath:'inset(0 0 0% 0)',duration:1.3,ease:'power4.inOut',
+        scrollTrigger:{trigger:el,start:'top 85%'}});
+    });
+
+    /* stagger groups */
+    gsap.utils.toArray('.reveal-group').forEach(group=>{
+      const items = group.querySelectorAll('.reveal-item');
+      gsap.set(items,{opacity:0,y:50});
+      gsap.to(items,{opacity:1,y:0,duration:.9,stagger:.12,ease:'power3.out',
+        scrollTrigger:{trigger:group,start:'top 85%'}});
+    });
+
+    /* ---------- Counters ---------- */
+    gsap.utils.toArray('[data-count]').forEach(el=>{
+      const end = parseFloat(el.getAttribute('data-count'));
+      const suffix = el.getAttribute('data-suffix')||'';
+      const obj={val:0};
+      ScrollTrigger.create({
+        trigger:el, start:'top 90%', once:true,
+        onEnter:()=>gsap.to(obj,{val:end,duration:2,ease:'power2.out',
+          onUpdate:()=>{el.textContent=(Number.isInteger(end)?Math.floor(obj.val):obj.val.toFixed(1))+suffix;}})
+      });
+    });
+
+    /* ---------- Parallax images ---------- */
+    gsap.utils.toArray('[data-parallax]').forEach(el=>{
+      gsap.to(el,{
+        yPercent: el.getAttribute('data-parallax')||-12,
+        ease:'none',
+        scrollTrigger:{trigger:el.parentElement,start:'top bottom',end:'bottom top',scrub:true}
+      });
+    });
+
+    /* ---------- Rotating stamp on scroll ---------- */
+    gsap.utils.toArray('.stamp').forEach(el=>{
+      gsap.fromTo(el,{rotate:-30,scale:.6,opacity:0},{
+        rotate:-9,scale:1,opacity:1,duration:1,ease:'back.out(2)',
+        scrollTrigger:{trigger:el,start:'top 90%'}
+      });
+    });
+
+    /* ---------- Card tilt on hover ---------- */
+    document.querySelectorAll('.product-card, .card').forEach(card=>{
+      card.addEventListener('mousemove', e=>{
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left)/r.width - .5;
+        const y = (e.clientY - r.top)/r.height - .5;
+        gsap.to(card,{rotateY:x*6,rotateX:-y*6,duration:.5,ease:'power2.out',transformPerspective:800});
+      });
+      card.addEventListener('mouseleave',()=>gsap.to(card,{rotateY:0,rotateX:0,duration:.6,ease:'power3.out'}));
+    });
+
+    /* ---------- Background canvas: floating produce blobs (webflow-style ambient bg) ---------- */
+    (function(){
+      const canvas = document.getElementById('bg-canvas');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let W,H;
+      function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight*document.body.scrollHeight/window.innerHeight;
+        H = canvas.height = window.innerHeight; canvas.style.height='100vh';}
+      resize();
+      window.addEventListener('resize',resize);
+      const colors=['#3F8555','#E3B23C','#E8631E','#6FA96F'];
+      const blobs = Array.from({length:7}).map((_,i)=>({
+        x:Math.random()*W, y:Math.random()*H, r:60+Math.random()*90,
+        c:colors[i%colors.length], vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
+        t:Math.random()*1000
+      }));
+      function draw(){
+        ctx.clearRect(0,0,W,H);
+        blobs.forEach(b=>{
+          b.x+=b.vx; b.y+=b.vy; b.t+=0.008;
+          if(b.x<-150)b.x=W+150; if(b.x>W+150)b.x=-150;
+          if(b.y<-150)b.y=H+150; if(b.y>H+150)b.y=-150;
+          const rad = b.r + Math.sin(b.t)*10;
+          const g = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,rad);
+          g.addColorStop(0, b.c+'33');
+          g.addColorStop(1, b.c+'00');
+          ctx.fillStyle=g;
+          ctx.beginPath();
+          ctx.arc(b.x,b.y,rad,0,Math.PI*2);
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* ---------- Marquee pause on hover ---------- */
+    document.querySelectorAll('.marquee').forEach(m=>{
+      m.addEventListener('mouseenter',()=>m.querySelector('.marquee-track').style.animationPlayState='paused');
+      m.addEventListener('mouseleave',()=>m.querySelector('.marquee-track').style.animationPlayState='running');
+    });
+
+    /* respect reduced motion */
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      gsap.globalTimeline.timeScale(50);
+    }
+
+    document.querySelectorAll('.tab').forEach(tab=>{
+      tab.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        const f = tab.getAttribute('data-filter');
+        document.querySelectorAll('#blogGrid .blog-card').forEach(card=>{
+          const show = f==='all' || card.getAttribute('data-cat')===f;
+          gsap.to(card,{opacity:show?1:0,scale:show?1:.92,duration:.3,ease:'power2.out',
+            onStart:()=>{ if(show) card.style.display='block'; },
+            onComplete:()=>{ if(!show) card.style.display='none'; }});
+        });
+      });
+    });
+
+    /* ---------- Load More (reveals extra posts, demo-friendly: just hides button after one click) ---------- */
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if(loadMoreBtn){
+      loadMoreBtn.addEventListener('click', ()=>{
+        loadMoreBtn.textContent = 'That\'s everything for now';
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.style.opacity = '.6';
+        loadMoreBtn.style.cursor = 'default';
+      });
+    }
+
+</script>
+<script src="js/prototype-guard.js"></script>
+</body>
+</html>

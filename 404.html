@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Not Found — Stackly Grocery & Supermarket</title>
+<meta name="description" content="This page has wandered off the shelf. Head back to Stackly Grocery & Supermarket.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+    :root{
+      --forest-dark:#0F2E1F;
+      --forest:#1E4B32;
+      --leaf:#3F8555;
+      --leaf-light:#6FA96F;
+      --gold:#E3B23C;
+      --tangerine:#E8631E;
+      --cream:#FBF7EC;
+      --paper:#F2E9D6;
+      --kraft:#C9A66B;
+      --kraft-dark:#8A6C3F;
+      --ink:#1B1B15;
+      --ink-soft:#4A4A3E;
+      --line:rgba(27,27,21,.12);
+      --white:#FFFFFF;
+      --font-display:'Fraunces',serif;
+      --font-body:'Inter',sans-serif;
+      --font-mono:'Space Mono',monospace;
+      --shadow-soft:0 20px 50px -20px rgba(15,46,31,.35);
+      --shadow-card:0 10px 30px -12px rgba(27,27,21,.25);
+    }
+    *,*::before,*::after{box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:var(--font-body);
+      background:var(--cream);
+      color:var(--ink);
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+    img{max-width:100%;display:block;}
+    a{color:inherit;text-decoration:none;}
+    p{margin:0;line-height:1.65;color:var(--ink-soft);}
+    button{font-family:inherit;cursor:pointer;}
+    :focus-visible{outline:3px solid var(--tangerine);outline-offset:3px;}
+    ::selection{background:var(--gold);color:var(--forest-dark);}
+
+    /* background canvas — same floating produce blobs as the rest of the site */
+    #bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.55;}
+    .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+    .nf-wrap{
+      position:relative;z-index:2;
+      max-width:640px;
+      width:100%;
+      margin:0 auto;
+      padding:clamp(28px,6vw,64px) clamp(24px,5vw,48px);
+      text-align:center;
+    }
+
+    .nf-brand{
+      display:inline-flex;align-items:center;gap:8px;
+      font-family:var(--font-display);font-weight:700;font-size:19px;
+      color:var(--forest-dark);
+      margin-bottom:clamp(28px,6vw,48px);
+    }
+    .nf-brand .mark{
+      width:30px;height:30px;border-radius:8px;
+      background:linear-gradient(135deg,var(--leaf),var(--forest-dark));
+      display:flex;align-items:center;justify-content:center;
+      color:var(--cream);font-size:15px;
+    }
+
+    /* the crate: a simple SVG basket that tips over and spills a 404 */
+    .nf-scene{
+      position:relative;
+      width:220px;height:170px;
+      margin:0 auto clamp(18px,4vw,28px);
+    }
+    .nf-scene svg{width:100%;height:100%;overflow:visible;}
+
+    .nf-code{
+      font-family:var(--font-display);
+      font-weight:800;
+      font-size:clamp(64px,16vw,108px);
+      line-height:1;
+      color:var(--forest-dark);
+      letter-spacing:-.02em;
+      margin-bottom:6px;
+      display:flex;
+      justify-content:center;
+      gap:4px;
+    }
+    .nf-code span{display:inline-block;}
+    .nf-code .zero{color:var(--tangerine);}
+
+    .nf-eyebrow{
+      font-family:var(--font-mono);
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-size:12.5px;
+      color:var(--leaf);
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .nf-eyebrow::before,.nf-eyebrow::after{content:'';width:22px;height:1px;background:var(--leaf);}
+
+    .nf-title{
+      font-family:var(--font-display);
+      font-weight:600;
+      font-size:clamp(22px,4.5vw,30px);
+      color:var(--ink);
+      margin:0 0 12px;
+      letter-spacing:-.01em;
+    }
+    .nf-text{
+      font-size:15px;
+      max-width:440px;
+      margin:0 auto clamp(28px,6vw,36px);
+    }
+
+    .nf-actions{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:9px;
+      padding:15px 30px;border-radius:100px;font-weight:600;font-size:14.5px;
+      border:1px solid transparent;position:relative;
+      transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease,background .25s ease;
+      white-space:nowrap;
+    }
+    .btn:active{transform:scale(.96);}
+    .btn-primary{background:var(--tangerine);color:var(--white);box-shadow:0 10px 25px -10px rgba(232,99,30,.6);}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 30px -10px rgba(232,99,30,.7);}
+    .btn-ghost{background:var(--white);color:var(--forest-dark);border:1px solid var(--line);}
+    .btn-ghost:hover{background:var(--paper);transform:translateY(-3px);}
+    .btn span.ico{font-size:15px;line-height:1;transition:transform .3s ease;}
+    .btn-ghost:hover span.ico{transform:translateX(-3px);}
+    .btn-primary:hover span.ico{transform:translateY(-2px);}
+
+    .nf-stamp{
+      margin:clamp(30px,6vw,44px) auto 0;
+      width:96px;height:96px;border-radius:50%;
+      border:2px dashed var(--kraft);
+      display:grid;place-items:center;text-align:center;
+      font-family:var(--font-mono);color:var(--kraft-dark);
+      transform:rotate(-8deg);
+      font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;line-height:1.5;
+      background:rgba(201,166,107,.06);
+    }
+    .nf-stamp b{display:block;font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--tangerine);letter-spacing:0;text-transform:none;}
+
+    @media (max-width:480px){
+      .nf-actions{flex-direction:column;width:100%;}
+      .btn{width:100%;}
+      .nf-scene{width:170px;height:132px;}
+    }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="grain"></div>
+
+<main class="nf-wrap">
+
+  <div class="nf-scene" id="nfScene">
+    <svg viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg">
+      <!-- ground shadow -->
+      <ellipse id="shadow" cx="110" cy="152" rx="62" ry="9" fill="#1B1B15" opacity="0.1"/>
+      
+
+      <!-- spilled produce (behind crate, scattered) -->
+      <g id="spill">
+        <circle cx="52" cy="140" r="9" fill="#E8631E"/>
+        <circle cx="52" cy="140" r="9" fill="none" stroke="#c94f14" stroke-width="1" opacity=".4"/>
+        <circle cx="150" cy="146" r="10" fill="#3F8555"/>
+        <circle cx="150" cy="146" r="10" fill="none" stroke="#2c6540" stroke-width="1" opacity=".4"/>
+        <circle cx="176" cy="132" r="7" fill="#E3B23C"/>
+        <ellipse cx="88" cy="150" rx="10" ry="7" fill="#6FA96F"/>
+        <circle cx="34" cy="122" r="6" fill="#E3B23C"/>
+      </g>
+
+      <!-- crate, tipped -->
+      <g id="crate" transform="translate(110,95) rotate(-14) translate(-45,-30)">
+        <rect x="0" y="18" width="90" height="34" rx="4" fill="#C9A66B"/>
+        <rect x="0" y="18" width="90" height="34" rx="4" fill="none" stroke="#8A6C3F" stroke-width="2"/>
+        <line x1="0" y1="30" x2="90" y2="30" stroke="#8A6C3F" stroke-width="2"/>
+        <line x1="18" y1="18" x2="18" y2="52" stroke="#8A6C3F" stroke-width="2"/>
+        <line x1="45" y1="18" x2="45" y2="52" stroke="#8A6C3F" stroke-width="2"/>
+        <line x1="72" y1="18" x2="72" y2="52" stroke="#8A6C3F" stroke-width="2"/>
+        <rect x="-4" y="10" width="98" height="10" rx="3" fill="#8A6C3F"/>
+      </g>
+
+      <!-- the "404" printed on a little tag hanging off the crate -->
+      <g id="tag" transform="translate(150,58)">
+        <rect x="-24" y="-14" width="48" height="26" rx="5" fill="#FBF7EC" stroke="#1B1B15" stroke-opacity=".15"/>
+        <text x="0" y="4" text-anchor="middle" font-family="Space Mono, monospace" font-size="12" font-weight="700" fill="#E8631E">404</text>
+        <line x1="0" y1="-14" x2="0" y2="-26" stroke="#8A6C3F" stroke-width="2"/>
+        <circle cx="0" cy="-28" r="3" fill="#8A6C3F"/>
+      </g>
+    </svg>
+  </div>
+ 
+  <div class="nf-code" aria-hidden="true">
+    <span class="d4">4</span><span class="zero">0</span><span class="d4b">4</span>
+  </div>
+
+  <div class="nf-eyebrow">Out of Stock</div>
+  <h1 class="nf-title">This aisle doesn't exist.</h1>
+  <p class="nf-text">The page you're looking for got misplaced somewhere between the produce and the checkout. Let's get you back to fresh ground.</p>
+
+  <div class="nf-actions">
+    <button class="btn btn-ghost" id="goBackBtn" type="button"><span class="ico">←</span>Go Back</button>
+    <a href="index.html" class="btn btn-primary" id="homeBtn"><span class="ico">🏠</span>Back to Home</a>
+  </div>
+
+
+</main>
+
+<script>
+  /* ---------- Background canvas: floating produce blobs (matches site) ---------- */
+  (function(){
+    const canvas = document.getElementById('bg-canvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W,H;
+    function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;canvas.style.height='100vh';}
+    resize();
+    window.addEventListener('resize',resize);
+    const colors=['#3F8555','#E3B23C','#E8631E','#6FA96F'];
+    const blobs = Array.from({length:6}).map((_,i)=>({
+      x:Math.random()*W, y:Math.random()*H, r:60+Math.random()*90,
+      c:colors[i%colors.length], vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
+      t:Math.random()*1000
+    }));
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      blobs.forEach(b=>{
+        b.x+=b.vx; b.y+=b.vy; b.t+=0.008;
+        if(b.x<-150)b.x=W+150; if(b.x>W+150)b.x=-150;
+        if(b.y<-150)b.y=H+150; if(b.y>H+150)b.y=-150;
+        const rad = b.r + Math.sin(b.t)*10;
+        const g = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,rad);
+        g.addColorStop(0, b.c+'33');
+        g.addColorStop(1, b.c+'00');
+        ctx.fillStyle=g;
+        ctx.beginPath();
+        ctx.arc(b.x,b.y,rad,0,Math.PI*2);
+        ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Entrance animation ---------- */
+  const tl = gsap.timeline({defaults:{ease:'power3.out'}});
+
+  tl.from('#brandHome',{opacity:0,y:-16,duration:.6})
+    .from('#crate',{opacity:0,y:-40,rotate:8,duration:.7,ease:'back.out(1.6)'},'-=.3')
+    .from('#spill circle, #spill ellipse',{
+      opacity:0,scale:0,transformOrigin:'center',
+      duration:.5,stagger:.06,ease:'back.out(2.2)'
+    },'-=.35')
+    .from('#tag',{opacity:0,y:-14,duration:.5,ease:'back.out(2)'},'-=.4')
+    .from('#shadow',{opacity:0,scaleX:.5,transformOrigin:'center',duration:.6},'-=.5')
+    .from('.nf-code span',{opacity:0,y:36,rotate:(i)=> i===1?0:(i===0?-6:6),duration:.65,stagger:.08,ease:'back.out(2)'},'-=.5')
+    .from('.nf-eyebrow',{opacity:0,y:12,duration:.5},'-=.25')
+    .from('.nf-title',{opacity:0,y:14,duration:.55},'-=.35')
+    .from('.nf-text',{opacity:0,y:14,duration:.55},'-=.4')
+    .from('.nf-actions .btn',{opacity:0,y:16,duration:.5,stagger:.1},'-=.35')
+    .from('.nf-stamp',{opacity:0,scale:.5,rotate:-30,duration:.6,ease:'back.out(2.4)'},'-=.2');
+
+  /* gentle idle sway on the crate + zero, skipped if reduced motion */
+  if(!reduceMotion){
+    gsap.to('#crate',{
+      y:'+=4', rotation:'+=1.2', duration:2.4, ease:'sine.inOut',
+      yoyo:true, repeat:-1, transformOrigin:'50% 100%', delay:1.6
+    });
+    gsap.to('.zero',{
+      y:'-=6', duration:1.6, ease:'sine.inOut', yoyo:true, repeat:-1, delay:1.8
+    });
+  } else {
+    gsap.globalTimeline.timeScale(50);
+  }
+
+  /* ---------- Buttons ---------- */
+  document.getElementById('goBackBtn').addEventListener('click', function(){
+    gsap.to('.nf-wrap',{opacity:0,y:10,duration:.35,ease:'power2.in',onComplete:function(){
+      if(window.history.length > 1){
+        window.history.back();
+      } else {
+        window.location.href = 'index.html';
+      }
+    }});
+  });
+
+  document.getElementById('homeBtn').addEventListener('click', function(e){
+    e.preventDefault();
+    gsap.to('.nf-wrap',{opacity:0,y:10,duration:.35,ease:'power2.in',onComplete:function(){
+      window.location.href = 'index.html';
+    }});
+  });
+</script>
+</body>
+</html>

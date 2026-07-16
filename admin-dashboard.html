@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — Stackly Grocery & Supermarket</title>
+<meta name="description" content="Manage orders, products, customers, and farm suppliers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+    :root{
+      --forest-dark:#0F2E1F;
+      --forest:#1E4B32;
+      --leaf:#3F8555;
+      --leaf-light:#6FA96F;
+      --gold:#E3B23C;
+      --tangerine:#E8631E;
+      --cream:#FBF7EC;
+      --paper:#F2E9D6;
+      --kraft:#C9A66B;
+      --kraft-dark:#8A6C3F;
+      --ink:#1B1B15;
+      --ink-soft:#4A4A3E;
+      --line:rgba(27,27,21,.12);
+      --white:#FFFFFF;
+      --font-display:'Fraunces',serif;
+      --font-body:'Inter',sans-serif;
+      --font-mono:'Space Mono',monospace;
+      --radius:18px;
+      --shadow-soft:0 20px 50px -20px rgba(15,46,31,.35);
+      --shadow-card:0 10px 30px -12px rgba(27,27,21,.25);
+    }
+    *,*::before,*::after{box-sizing:border-box;}
+    html{scroll-behavior:smooth;overflow-x:hidden;}
+    body{
+      margin:0;
+      font-family:var(--font-body);
+      background:var(--cream);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+    }
+    img{max-width:100%;display:block;}
+    a{color:inherit;text-decoration:none;}
+    ul{list-style:none;margin:0;padding:0;}
+    h1,h2,h3,h4{font-family:var(--font-display);margin:0;font-weight:600;letter-spacing:-.01em;}
+    p{margin:0;line-height:1.65;color:var(--ink-soft);}
+    button{font-family:inherit;cursor:pointer;}
+    :focus-visible{outline:3px solid var(--tangerine);outline-offset:3px;}
+    .wrap{max-width:1600px;margin:0 auto;padding:0 clamp(24px,4vw,64px);}
+    .eyebrow{
+      font-family:var(--font-mono);
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-size:12.5px;
+      color:var(--leaf);
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .eyebrow::before{content:'';width:22px;height:1px;background:var(--leaf);}
+
+    /* ---------- ICONS ---------- */
+    .icon{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+    /* ---------- BACKGROUND CANVAS ---------- */
+    #bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.55;}
+    .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+    /* ---------- BUTTONS ---------- */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px 28px;border-radius:100px;font-weight:600;font-size:14.5px;
+      border:1px solid transparent;position:relative;overflow:hidden;isolation:isolate;
+      transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease;
+      white-space:nowrap;
+    }
+    .btn:active{transform:scale(.96);}
+    .btn-primary{background:var(--tangerine);color:var(--white);box-shadow:0 10px 25px -10px rgba(232,99,30,.6);}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 30px -10px rgba(232,99,30,.7);}
+    .btn-ghost{background:var(--white);color:var(--forest-dark);border:1px solid var(--line);}
+    .btn-ghost:hover{background:var(--paper);transform:translateY(-2px);}
+    .btn-sm{padding:9px 18px;font-size:13px;}
+    .btn-danger{background:rgba(232,99,30,.1);color:var(--tangerine);border:1px solid rgba(232,99,30,.3);}
+    .btn-danger:hover{background:rgba(232,99,30,.18);}
+
+    /* ---------- STAMP BADGE ---------- */
+    .stamp{
+      width:108px;height:108px;border-radius:50%;
+      border:2px dashed var(--forest);
+      display:grid;place-items:center;text-align:center;
+      font-family:var(--font-mono);color:var(--forest);
+      transform:rotate(-9deg);
+      font-size:11px;text-transform:uppercase;letter-spacing:.08em;line-height:1.5;
+      flex-shrink:0;background:rgba(63,133,85,.05);
+    }
+    .stamp b{display:block;font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--tangerine);letter-spacing:0;text-transform:none;}
+    .stamp.gold{border-color:var(--gold);color:var(--kraft-dark);}
+    .stamp.gold b{color:var(--gold);}
+
+    .reveal{opacity:0;transform:translateY(40px);}
+    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;}
+    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;}
+
+    ::selection{background:var(--gold);color:var(--forest-dark);}
+
+    /* ============ DASHBOARD SHELL ============ */
+    .dash-shell{display:grid;grid-template-columns:264px minmax(0,1fr);min-height:100vh;position:relative;z-index:2;}
+    .dash-sidebar{background:var(--forest-dark);color:var(--cream);padding:28px 20px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;z-index:50;}
+    .dash-brand{display:flex;align-items:center;gap:4px;font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:20px;padding:0 8px;}
+    .dash-brand .mark-logo{width:32px;height:32px;border-radius:8px;object-fit:contain;}
+
+    /* access badge */
+    .access-badge{display:inline-flex;align-items:center;gap:9px;padding:9px 14px;border-radius:100px;background:rgba(251,247,236,.07);border:1px solid rgba(251,247,236,.16);font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--tangerine);margin:0 8px 26px;width:fit-content;}
+    .access-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--tangerine);flex-shrink:0;}
+
+    .dash-nav{display:flex;flex-direction:column;gap:4px;flex:1;}
+    .dnav{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:rgba(251,247,236,.72);font-size:14.5px;font-weight:500;transition:.25s;}
+    .dnav span{font-size:16px;width:20px;text-align:center;display:inline-flex;align-items:center;justify-content:center;}
+    .dnav:hover{background:rgba(251,247,236,.06);color:var(--cream);}
+    .dnav.active{background:rgba(227,178,60,.14);color:var(--gold);font-weight:700;}
+
+    /* sidebar footer: back to home + sign out */
+    .sidebar-foot{display:flex;flex-direction:column;gap:10px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(251,247,236,.1);}
+    .sidebar-backdrop{position:fixed;inset:0;background:rgba(15,20,15,.5);z-index:45;opacity:0;pointer-events:none;transition:opacity .35s ease;}
+    body.sidebar-open{overflow:hidden;}
+    body.sidebar-open .sidebar-backdrop{opacity:1;pointer-events:auto;}
+    .sidebar-btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:12px 14px;border-radius:100px;font-size:13.5px;font-weight:700;border:1px solid rgba(251,247,236,.22);color:var(--cream);transition:.25s;background:transparent;}
+    .sidebar-btn:hover{background:rgba(251,247,236,.09);transform:translateY(-2px);}
+    .sidebar-btn.logout{border-color:rgba(232,99,30,.4);color:#ffb199;}
+    .sidebar-btn.logout:hover{background:rgba(232,99,30,.14);}
+
+    .dash-main{background:var(--paper);min-height:100vh;min-width:0;}
+    .dash-topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:20px;padding:16px 32px;background:rgba(251,247,236,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+    .dash-burger{display:none;background:none;border:none;font-size:20px;}
+    .dash-search{flex:1;max-width:400px;}
+    .dash-search input{width:100%;padding:11px 16px;border-radius:100px;border:1px solid var(--line);background:var(--white);font-size:16px;}
+    .topbar-panel-title{display:none;flex:1;font-size:16px;color:var(--forest-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .dash-top-actions{display:flex;align-items:center;gap:14px;margin-left:auto;}
+    .dt-icon{position:relative;width:40px;height:40px;border-radius:50%;background:var(--white);border:1px solid var(--line);font-size:15px;display:flex;align-items:center;justify-content:center;}
+    .dt-icon .dot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--tangerine);}
+    .dt-profile{display:flex;align-items:center;gap:10px;}
+    .dt-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--tangerine),var(--forest-dark));color:var(--cream);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:15px;}
+    .dt-profile b{display:block;font-size:13.5px;}
+    .dt-profile span{font-size:11.5px;color:var(--ink-soft);}
+
+    .dash-content{padding:32px;display:flex;flex-direction:column;gap:28px;}
+    .dash-welcome{background:var(--forest-dark);color:var(--cream);border-radius:22px;padding:32px 36px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+    .dash-welcome h2{color:var(--cream);font-size:26px;margin:6px 0;}
+    .dash-welcome p{color:rgba(251,247,236,.75);}
+
+    .dstat-card{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow-card);}
+    .dstat-icon{font-size:20px;display:inline-flex;}
+    .dstat-card b{font-family:var(--font-display);font-size:30px;color:var(--forest-dark);}
+    .dstat-card span{font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);}
+
+    .dash-grid-2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px;align-items:start;}
+    .panel{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:var(--shadow-card);min-width:0;}
+    .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:16px;flex-wrap:wrap;}
+    .panel-head h4{font-size:17px;}
+    .see-all{font-size:13px;font-weight:600;color:var(--tangerine);}
+
+    .dash-table{width:100%;border-collapse:collapse;}
+    .dash-table th{text-align:left;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:10px 8px;border-bottom:1px solid var(--line);}
+    .dash-table td{padding:14px 8px;border-bottom:1px solid var(--line);font-size:13.8px;}
+    .dash-table tr:last-child td{border-bottom:none;}
+    .status{padding:5px 12px;border-radius:100px;font-size:11.5px;font-weight:700;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.03em;}
+    .status.delivered{background:rgba(63,133,85,.12);color:var(--leaf);}
+    .status.transit{background:rgba(227,178,60,.18);color:var(--kraft-dark);}
+    .status.cancelled{background:rgba(232,99,30,.12);color:var(--tangerine);}
+    .status.pending{background:rgba(74,74,62,.1);color:var(--ink-soft);}
+    .status.active-s{background:rgba(63,133,85,.12);color:var(--leaf);}
+    .status.review{background:rgba(227,178,60,.18);color:var(--kraft-dark);}
+
+    /* revenue chart + low stock */
+    .rev-chart{display:flex;align-items:flex-end;gap:14px;height:200px;padding-top:10px;}
+    .rev-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;height:100%;}
+    .rev-bar{width:100%;max-width:34px;background:linear-gradient(180deg,var(--leaf-light),var(--forest));border-radius:8px 8px 3px 3px;}
+    .rev-bar-col span{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-soft);}
+    .low-stock-list{display:flex;flex-direction:column;}
+    .low-stock-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+    .low-stock-item:last-child{border-bottom:none;}
+    .low-stock-item b{font-size:13.5px;display:block;}
+    .low-stock-item span{font-size:11.5px;color:var(--ink-soft);}
+    .stock-pill{font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:100px;background:rgba(232,99,30,.12);color:var(--tangerine);font-weight:700;}
+
+    /* ---------- extra: product manage cards ---------- */
+    .pm-card{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--white);}
+    .pm-thumb{width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--paper);}
+    .pm-info{flex:1;min-width:0;}
+    .pm-info b{font-size:14px;display:block;}
+    .pm-info span{font-size:12px;color:var(--ink-soft);}
+    .pm-price{font-family:var(--font-mono);font-weight:700;color:var(--tangerine);font-size:14px;white-space:nowrap;}
+
+    /* customer card */
+    .cust-card{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--white);}
+    .cust-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--tangerine),var(--forest-dark));color:var(--cream);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:15px;flex-shrink:0;}
+    .cust-info{flex:1;min-width:0;}
+    .cust-info b{font-size:14px;display:block;}
+    .cust-info span{font-size:12px;color:var(--ink-soft);}
+
+    /* farm card */
+    .farm-card{padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--white);display:flex;flex-direction:column;gap:10px;}
+    .farm-card h4{font-size:16px;}
+    .farm-meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-soft);}
+
+    /* settings form */
+    .settings-form{display:flex;flex-direction:column;gap:16px;max-width:480px;}
+    .field{display:flex;flex-direction:column;gap:6px;}
+    .field label{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);}
+    .field input,.field select,.field textarea{padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--paper);font-size:16px;font-family:inherit;color:var(--ink);}
+    .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);}
+    .toggle-row:last-child{border-bottom:none;}
+    .toggle-row b{font-size:13.8px;display:block;}
+    .toggle-row span{font-size:12px;color:var(--ink-soft);}
+    .switch{position:relative;width:42px;height:24px;border-radius:100px;background:var(--line);flex-shrink:0;cursor:pointer;transition:.25s;}
+    .switch::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--white);transition:.25s;box-shadow:0 2px 5px rgba(0,0,0,.2);}
+    .switch.on{background:var(--leaf);}
+    .switch.on::after{left:21px;}
+
+    /* mini stat row for analytics */
+    .mini-stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+    .mini-stat{font-family:var(--font-mono);font-size:11.5px;padding:8px 14px;border-radius:100px;background:var(--paper);border:1px solid var(--line);color:var(--ink-soft);}
+    .mini-stat b{color:var(--forest-dark);}
+
+    .dash-panel{display:none;}
+    .dash-panel.active{display:flex;flex-direction:column;gap:28px;}
+
+    @media (max-width:1080px){
+      .dash-grid-2{grid-template-columns:minmax(0,1fr);}
+      .grid-3{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+    @media (max-width:900px){
+      .dash-shell{grid-template-columns:minmax(0,1fr);}
+      .dash-sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;transform:translateX(-100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);}
+      .dash-sidebar.open{transform:translateX(0);}
+      .dash-burger{display:block;}
+      .dash-search{display:none;}
+      .topbar-panel-title{display:block;}
+      .grid-4{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .grid-3,.grid-2{grid-template-columns:minmax(0,1fr);}
+    }
+    @media (max-width:640px){
+      .dash-content{padding:18px;}
+      .dash-welcome{padding:24px;flex-direction:column;align-items:flex-start;}
+      .dash-welcome > div{width:100%;}
+      .dash-table{display:block;overflow-x:auto;white-space:nowrap;}
+      .dash-topbar{padding:14px 18px;}
+      .dt-profile span{display:none;}
+      .grid-4{grid-template-columns:minmax(0,1fr);}
+    }
+
+    /* ---------- Small phones (320px–420px) ---------- */
+    @media (max-width:420px){
+      .wrap{padding:0 16px;}
+
+      /* sidebar: fill most of a narrow screen instead of a fixed 250px slab */
+      .dash-sidebar{width:82vw;max-width:300px;}
+
+      /* page headers (eyebrow + h2 + action button): stop the button floating
+         top-right disconnected from the heading — stack it full-width below */
+      .panel-head:has(.eyebrow){flex-direction:column;align-items:stretch;}
+      .panel-head:has(.eyebrow) .btn{width:100%;justify-content:center;}
+      .panel-head:has(.eyebrow) > div:last-child{flex-direction:column;align-items:stretch;}
+
+      /* topbar: shrink everything so nothing overflows a 320px screen */
+      .dash-topbar{padding:10px 12px;gap:8px;}
+      .dash-burger{font-size:18px;padding:4px;flex-shrink:0;}
+      .dash-top-actions{gap:8px;}
+      .dt-icon{width:34px;height:34px;font-size:13px;flex-shrink:0;}
+      .dt-avatar{width:30px;height:30px;font-size:12.5px;}
+      .dt-profile b{display:none;} /* avatar only — name no longer fits safely */
+
+      /* main content spacing */
+      .dash-content{padding:14px;gap:18px;}
+
+      /* welcome banner: stack and full-width button, smaller type */
+      .dash-welcome{padding:18px;border-radius:16px;gap:14px;}
+      .dash-welcome h2{font-size:19px;line-height:1.25;}
+      .dash-welcome p{font-size:13px;}
+      .dash-welcome .btn{width:100%;padding:12px 20px;font-size:13.5px;}
+
+      /* panels */
+      .panel{padding:16px;border-radius:14px;}
+      .panel-head{margin-bottom:14px;gap:8px;}
+      .panel-head h4{font-size:14.5px;}
+      .see-all{font-size:12px;}
+
+      /* stat cards */
+      .dstat-card{padding:16px;border-radius:14px;}
+      .dstat-card b{font-size:24px;}
+      .dstat-card span{font-size:10.5px;}
+
+      /* tables */
+      .dash-table th{font-size:10px;padding:8px 6px;}
+      .dash-table td{font-size:12.5px;padding:11px 6px;}
+      .status{font-size:10.5px;padding:4px 9px;}
+
+      /* stamp badge: too big for a 288px-wide panel at full size */
+      .stamp{width:78px;height:78px;font-size:9px;}
+      .stamp b{font-size:14px;}
+
+      /* revenue chart: 7 columns won't fit legibly at 320px — shrink and let it breathe */
+      .rev-chart{gap:6px;height:150px;}
+      .rev-bar-col{gap:5px;}
+      .rev-bar-col span{font-size:9px;}
+      .mini-stats{gap:6px;}
+      .mini-stat{font-size:10.5px;padding:6px 10px;}
+
+      /* low stock / top products / supplier rows */
+      .low-stock-item{padding:10px 0;gap:8px;}
+      .low-stock-item b{font-size:12.5px;}
+      .low-stock-item span{font-size:10.5px;}
+      .stock-pill{font-size:10px;padding:3px 8px;}
+
+      /* product / customer / farm management cards */
+      .pm-card,.cust-card{padding:12px;gap:10px;}
+      .pm-thumb{width:44px;height:44px;}
+      .cust-avatar{width:38px;height:38px;font-size:13px;}
+      .farm-card{padding:14px;}
+
+      /* buttons in general */
+      .btn-sm{padding:8px 14px;font-size:12.5px;}
+
+      /* toggle rows */
+      .toggle-row{padding:12px 0;gap:10px;}
+      .toggle-row b{font-size:13px;}
+      .toggle-row span{font-size:11px;}
+    }
+
+    /* ---------- True small phones (≤380px, e.g. 320×568) ---------- */
+    @media (max-width:380px){
+      /* hard safety net: nothing is allowed to push the page wider than the viewport */
+      html{max-width:100vw;overflow-x:hidden;}
+      body{max-width:100vw;}
+      .dash-shell,.dash-main{max-width:100vw;}
+      .dash-content,.dash-topbar{max-width:100vw;overflow-x:hidden;}
+
+      .dash-sidebar{width:86vw;max-width:280px;padding:24px 16px;}
+
+      .dash-content{padding:12px;gap:14px;}
+      .dash-welcome{padding:16px;border-radius:14px;gap:12px;}
+      .dash-welcome h2{font-size:17px;}
+      .dash-welcome p{font-size:12.5px;}
+
+      /* stat grids: guarantee single column, full-width cards, generous spacing
+         — this is the "second image" look: one card per row, roomy, not squeezed */
+      .grid-4,.grid-3,.grid-2{grid-template-columns:minmax(0,1fr);gap:12px;}
+      .dash-grid-2{grid-template-columns:minmax(0,1fr);gap:14px;}
+      .dstat-card{flex-direction:row;align-items:center;gap:12px;padding:14px 16px;}
+      .dstat-card b{font-size:22px;}
+
+      .panel{padding:14px;}
+      .panel-head h4{font-size:14.5px;}
+
+      /* ---- Recent Orders / Order Queue: swap the cramped table for stacked
+         cards instead of a horizontally-shrunk, unreadable table row ---- */
+      .dash-table.stack-mobile{white-space:normal;border:none;}
+      .dash-table.stack-mobile thead{display:none;}
+      .dash-table.stack-mobile,
+      .dash-table.stack-mobile tbody,
+      .dash-table.stack-mobile tr,
+      .dash-table.stack-mobile td{display:block;width:100%;}
+      .dash-table.stack-mobile tr{
+        background:var(--paper);
+        border:1px solid var(--line);
+        border-radius:14px;
+        padding:12px 14px;
+        margin-bottom:10px;
+      }
+      .dash-table.stack-mobile tr:last-child{margin-bottom:0;}
+      .dash-table.stack-mobile td{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        padding:7px 0;
+        border-bottom:1px dashed var(--line);
+        font-size:12.5px;
+        text-align:right;
+      }
+      .dash-table.stack-mobile td:last-child{border-bottom:none;}
+      .dash-table.stack-mobile td::before{
+        content:attr(data-label);
+        font-family:var(--font-mono);
+        font-size:10px;
+        text-transform:uppercase;
+        letter-spacing:.05em;
+        color:var(--ink-soft);
+        flex-shrink:0;
+        text-align:left;
+      }
+      .dash-table.stack-mobile td[data-label="Order"]{font-weight:700;color:var(--forest-dark);}
+
+      .stamp{width:68px;height:68px;font-size:8.5px;}
+      .stamp b{font-size:12px;}
+    }
+
+    body{background:var(--paper);}
+</style>
+</head>
+<body>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="icon-bar-chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+  <symbol id="icon-package" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></symbol>
+  <symbol id="icon-tag" viewBox="0 0 24 24"><path d="M20.59 13.41L11 3.83A2 2 0 0 0 9.59 3.2L3 3a1 1 0 0 0-1 1l.2 6.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l6.59-6.59a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1.5"/></symbol>
+  <symbol id="icon-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="icon-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 4 13c0-6 7-11 15-11 0 8-5 15-11 15z"/><path d="M4 20l6-6"/></symbol>
+  <symbol id="icon-trending-up" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
+  <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15 1.65 1.65 0 0 0 3.17 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.22.65.22 1H21a2 2 0 0 1 0 4h-.09c-.14.35-.22.69-.22 1z"/></symbol>
+  <symbol id="icon-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></symbol>
+  <symbol id="icon-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77 0"/></symbol>
+  <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+  <symbol id="icon-dollar" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+  <symbol id="icon-alert-triangle" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="icon-truck" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></symbol>
+  <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="icon-undo" viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></symbol>
+  <symbol id="icon-basket" viewBox="0 0 24 24"><path d="M6 2l1.5 5h9L18 2"/><path d="M3 7h18l-1.5 13a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2L3 7z"/></symbol>
+  <symbol id="icon-check-circle" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+  <symbol id="icon-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></symbol>
+  <symbol id="icon-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></symbol>
+  <symbol id="icon-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+  <symbol id="icon-repeat" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
+</svg>
+<canvas id="bg-canvas"></canvas>
+<div class="grain"></div>
+<section class="dash-shell">
+  <aside class="dash-sidebar" id="dashSidebar">
+    <div class="dash-brand"><img src="stackly-logo.webp" alt="Stackly logo" class="mark-logo" onclick="navhand()"><a href="./404.html">Stackly</a></div>
+    <div class="access-badge"><span class="dot"></span>Admin Access</div>
+    <nav class="dash-nav">
+      <a href="#" class="dnav active" data-panel="overview"><span><svg class="icon"><use href="#icon-bar-chart"></use></svg></span>Overview</a>
+      <a href="#" class="dnav" data-panel="orders"><span><svg class="icon"><use href="#icon-package"></use></svg></span>Orders</a>
+      <a href="#" class="dnav" data-panel="products"><span><svg class="icon"><use href="#icon-tag"></use></svg></span>Products</a>
+      <a href="#" class="dnav" data-panel="customers"><span><svg class="icon"><use href="#icon-users"></use></svg></span>Customers</a>
+      <a href="#" class="dnav" data-panel="farms"><span><svg class="icon"><use href="#icon-leaf"></use></svg></span>Farm Suppliers</a>
+      <a href="#" class="dnav" data-panel="analytics"><span><svg class="icon"><use href="#icon-trending-up"></use></svg></span>Analytics</a>
+      <a href="#" class="dnav" data-panel="settings"><span><svg class="icon"><use href="#icon-settings"></use></svg></span>Settings</a>
+    </nav>
+    <div class="sidebar-foot">
+      <a href="index.html" class="sidebar-btn"><span><svg class="icon"><use href="#icon-home"></use></svg></span>Back to Home</a>
+      <a href="login.html" class="sidebar-btn logout" id="logoutBtn"><span><svg class="icon"><use href="#icon-power"></use></svg></span>Log Out</a>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <button class="dash-burger" id="dashBurger">☰</button>
+      <h3 class="topbar-panel-title" id="topbarPanelTitle">Overview</h3>
+      <div class="dash-top-actions">
+        <button class="dt-icon" onclick="error()"><svg class="icon"><use href="#icon-bell"></use></svg><span class="dot"></span></button>
+        <div class="dt-profile" id="dtProfile">
+          <div class="dt-avatar" id="dtAvatar" onclick="error()">E</div>
+          <div><b id="dtName">Elena Marsh</b><span id="dtEmail">Store Administrator</span></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="dash-content">
+
+      <!-- ============ OVERVIEW PANEL ============ -->
+      <div class="dash-panel active" id="panel-overview">
+        <div class="dash-welcome reveal">
+          <div>
+            <div class="eyebrow" style="color:var(--gold);">Store Overview</div>
+            <h2 id="welcomeHeading">Today at a glance.</h2>
+            <p>Wednesday, July 15 — 3 low-stock alerts need attention.</p>
+          </div>
+          <a href="./404.html" class="btn btn-primary" >+ Add Product</a>
+        </div>
+
+        <div class="grid-4 reveal-group">
+          <div class="dstat-card reveal-item"><span class="dstat-icon"><svg class="icon"><use href="#icon-dollar"></use></svg></span><b data-count="18420" data-suffix="">0</b><span>Revenue (This Month, $)</span></div>
+          <div class="dstat-card reveal-item"><span class="dstat-icon"><svg class="icon"><use href="#icon-package"></use></svg></span><b data-count="214">0</b><span>Orders Today</span></div>
+          <div class="dstat-card reveal-item"><span class="dstat-icon"><svg class="icon"><use href="#icon-users"></use></svg></span><b data-count="52000" data-suffix="+">0</b><span>Active Customers</span></div>
+          <div class="dstat-card reveal-item"><span class="dstat-icon"><svg class="icon"><use href="#icon-alert-triangle"></use></svg></span><b data-count="3">0</b><span>Low Stock Alerts</span></div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="panel reveal">
+            <div class="panel-head"><h4>Revenue — Last 7 Days</h4><span class="see-all">$18,420 total</span></div>
+            <div class="rev-chart">
+              <div class="rev-bar-col"><div class="rev-bar" style="height:52%;"></div><span>Mon</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:68%;"></div><span>Tue</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:44%;"></div><span>Wed</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:81%;"></div><span>Thu</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:95%;"></div><span>Fri</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:73%;"></div><span>Sat</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:60%;"></div><span>Sun</span></div>
+            </div>
+          </div>
+
+          <div class="panel reveal">
+            <div class="panel-head"><h4>Low Stock Alerts</h4><a href="./404.html" class="see-all" ">Manage</a></div>
+            <div class="low-stock-list">
+              <div class="low-stock-item"><div><b>Hass Avocado</b><span>Produce · SKU HV-1042</span></div><span class="stock-pill">6 left</span></div>
+              <div class="low-stock-item"><div><b>Wild Sourdough</b><span>Bakery · SKU HV-2087</span></div><span class="stock-pill">4 left</span></div>
+              <div class="low-stock-item"><div><b>Atlantic Salmon Fillet</b><span>Seafood · SKU HV-3311</span></div><span class="stock-pill">3 left</span></div>
+            </div>
+            <div class="stamp gold" style="margin-top:20px;"><b>92%</b>In Stock<br>Rate</div>
+          </div>
+        </div>
+
+        <div class="panel reveal">
+          <div class="panel-head"><h4>Recent Orders</h4><a href="./404.html" class="see-all" >View All Orders</a></div>
+          <table class="dash-table stack-mobile">
+            <thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td data-label="Order">#HV-5122</td><td data-label="Customer">Priya Nair</td><td data-label="Date">Jul 14, 2026</td><td data-label="Items">14</td><td data-label="Total">$68.40</td><td data-label="Status"><span class="status transit">In Transit</span></td></tr>
+              <tr><td data-label="Order">#HV-5121</td><td data-label="Customer">Daniel Ruiz</td><td data-label="Date">Jul 14, 2026</td><td data-label="Items">7</td><td data-label="Total">$32.10</td><td data-label="Status"><span class="status pending">Processing</span></td></tr>
+              <tr><td data-label="Order">#HV-5119</td><td data-label="Customer">Marissa Cole</td><td data-label="Date">Jul 14, 2026</td><td data-label="Items">19</td><td data-label="Total">$91.80</td><td data-label="Status"><span class="status delivered">Delivered</span></td></tr>
+              <tr><td data-label="Order">#HV-5116</td><td data-label="Customer">Jordan Blake</td><td data-label="Date">Jul 13, 2026</td><td data-label="Items">11</td><td data-label="Total">$54.60</td><td data-label="Status"><span class="status delivered">Delivered</span></td></tr>
+              <tr><td data-label="Order">#HV-5108</td><td data-label="Customer">Sofia Alvarez</td><td data-label="Date">Jul 13, 2026</td><td data-label="Items">5</td><td data-label="Total">$27.30</td><td data-label="Status"><span class="status cancelled">Refunded</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="panel reveal">
+            <div class="panel-head"><h4>Top Selling Products</h4></div>
+            <div class="low-stock-list">
+              <div class="low-stock-item"><div><b>1. Heirloom Tomatoes</b><span>842 units sold</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">↑ 18%</span></div>
+              <div class="low-stock-item"><div><b>2. Wild Sourdough</b><span>710 units sold</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">↑ 12%</span></div>
+              <div class="low-stock-item"><div><b>3. Pasture Eggs (Dozen)</b><span>688 units sold</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">↑ 9%</span></div>
+              <div class="low-stock-item"><div><b>4. Hass Avocado</b><span>601 units sold</span></div><span class="stock-pill">↓ 3%</span></div>
+            </div>
+          </div>
+          <div class="panel reveal">
+            <div class="panel-head"><h4>Farm Suppliers</h4><a href="./404.html" class="see-all" >Manage</a></div>
+            <div class="low-stock-list">
+              <div class="low-stock-item"><div><b>Rooted Acres Farm</b><span>Produce · Millbrook, NY</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">Active</span></div>
+              <div class="low-stock-item"><div><b>Hudson Dairy Collective</b><span>Dairy · Rhinebeck, NY</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">Active</span></div>
+              <div class="low-stock-item"><div><b>Stonegrind Bakehouse</b><span>Bakery · Poughkeepsie, NY</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">Active</span></div>
+              <div class="low-stock-item"><div><b>Kingston River Fisheries</b><span>Seafood · Kingston, NY</span></div><span class="stock-pill">Pending Review</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ ORDERS PANEL ============ -->
+      <div class="dash-panel" id="panel-orders">
+        <div class="panel-head" style="margin:0;">
+          <div><div class="eyebrow">Order Management</div><h2>All Orders</h2></div>
+          <div style="display:flex;gap:10px;"><button class="btn btn-ghost btn-sm" onclick="error()">Export CSV</button><button class="btn btn-primary btn-sm" onclick="error()">+ New Order</button></div>
+        </div>
+        <div class="grid-4">
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-package"></use></svg></span><b>214</b><span>Orders Today</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-truck"></use></svg></span><b>38</b><span>In Transit</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-clock"></use></svg></span><b>12</b><span>Processing</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-undo"></use></svg></span><b>4</b><span>Refunded</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h4>Order Queue</h4><span class="see-all">227 total</span></div>
+          <table class="dash-table stack-mobile">
+            <thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td data-label="Order">#HV-5122</td><td data-label="Customer">Priya Nair</td><td data-label="Date">Jul 14, 2026</td><td data-label="Items">14</td><td data-label="Total">$68.40</td><td data-label="Payment">Visa •4471</td><td data-label="Status"><span class="status transit">In Transit</span></td></tr>
+              <tr><td data-label="Order">#HV-5121</td><td data-label="Customer">Daniel Ruiz</td><td data-label="Date">Jul 14, 2026</td><td data-label="Items">7</td><td data-label="Total">$32.10</td><td data-label="Payment">Apple Pay</td><td data-label="Status"><span class="status pending">Processing</span></td></tr>
+              <tr><td data-label="Order">#HV-5119</td><td data-label="Customer">Marissa Cole</td><td data-label="Date">Jul 14, 2026</td><td data-label="Items">19</td><td data-label="Total">$91.80</td><td data-label="Payment">Mastercard •9021</td><td data-label="Status"><span class="status delivered">Delivered</span></td></tr>
+              <tr><td data-label="Order">#HV-5116</td><td data-label="Customer">Jordan Blake</td><td data-label="Date">Jul 13, 2026</td><td data-label="Items">11</td><td data-label="Total">$54.60</td><td data-label="Payment">Visa •2210</td><td data-label="Status"><span class="status delivered">Delivered</span></td></tr>
+              <tr><td data-label="Order">#HV-5108</td><td data-label="Customer">Sofia Alvarez</td><td data-label="Date">Jul 13, 2026</td><td data-label="Items">5</td><td data-label="Total">$27.30</td><td data-label="Payment">PayPal</td><td data-label="Status"><span class="status cancelled">Refunded</span></td></tr>
+              <tr><td data-label="Order">#HV-5104</td><td data-label="Customer">Marcus Webb</td><td data-label="Date">Jul 12, 2026</td><td data-label="Items">9</td><td data-label="Total">$46.90</td><td data-label="Payment">Visa •7734</td><td data-label="Status"><span class="status delivered">Delivered</span></td></tr>
+              <tr><td data-label="Order">#HV-5099</td><td data-label="Customer">Elena Marsh</td><td data-label="Date">Jul 12, 2026</td><td data-label="Items">21</td><td data-label="Total">$103.20</td><td data-label="Payment">Apple Pay</td><td data-label="Status"><span class="status transit">In Transit</span></td></tr>
+              <tr><td data-label="Order">#HV-5092</td><td data-label="Customer">Chloe Bennett</td><td data-label="Date">Jul 11, 2026</td><td data-label="Items">6</td><td data-label="Total">$29.75</td><td data-label="Payment">Mastercard •1187</td><td data-label="Status"><span class="status pending">Processing</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ PRODUCTS PANEL ============ -->
+      <div class="dash-panel" id="panel-products">
+        <div class="panel-head" style="margin:0;">
+          <div><div class="eyebrow">Catalog</div><h2>Products</h2></div>
+          <button class="btn btn-primary btn-sm" onclick="error()">+ Add Product</button>
+        </div>
+        <div class="grid-4">
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-basket"></use></svg></span><b>486</b><span>Total SKUs</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-check-circle"></use></svg></span><b>92%</b><span>In Stock Rate</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-alert-triangle"></use></svg></span><b>3</b><span>Low Stock</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-x-circle"></use></svg></span><b>1</b><span>Out of Stock</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h4>Inventory</h4><span class="see-all"></span></div>
+          <div class="grid-2">
+            <div class="pm-card"><img class="pm-thumb" src="./assets/avacodo.webp" alt="Avocado"><div class="pm-info"><b>Hass Avocado</b><span>Produce · SKU HV-1042 · 6 left</span></div><span class="pm-price">$3.90</span></div>
+            <div class="pm-card"><img class="pm-thumb" src="./assets/Wild Sourdough.webp" alt="Sourdough"><div class="pm-info"><b>Wild Sourdough</b><span>Bakery · SKU HV-2087 · 4 left</span></div><span class="pm-price">$6.20</span></div>
+            <div class="pm-card"><img class="pm-thumb" src="./assets/Atlantic Salmon Fillet.webp" alt="Salmon"><div class="pm-info"><b>Atlantic Salmon Fillet</b><span>Seafood · SKU HV-3311 · 3 left</span></div><span class="pm-price">$14.50</span></div>
+            <div class="pm-card"><img class="pm-thumb" src="./assets/tomotos.webp" alt="Tomatoes"><div class="pm-info"><b>Heirloom Tomatoes</b><span>Produce · SKU HV-1001 · 842 sold</span></div><span class="pm-price">$4.60</span></div>
+            <div class="pm-card"><img class="pm-thumb" src="./assets/Pasture Eggs (Dozen).webp" alt="Eggs"><div class="pm-info"><b>Pasture Eggs (Dozen)</b><span>Dairy · SKU HV-1077 · 688 sold</span></div><span class="pm-price">$5.10</span></div>
+            <div class="pm-card"><img class="pm-thumb" src="./assets/berries.webp" alt="Berries"><div class="pm-info"><b>Mixed Berry Punnet</b><span>Produce · SKU HV-1153 · 214 sold</span></div><span class="pm-price">$6.90</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ CUSTOMERS PANEL ============ -->
+      <div class="dash-panel" id="panel-customers">
+        <div class="panel-head" style="margin:0;">
+          <div><div class="eyebrow">Community</div><h2>Customers</h2></div>
+          <button class="btn btn-ghost btn-sm" onclick="error()">Export List</button>
+        </div>
+        <div class="grid-4">
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-users"></use></svg></span><b>52,000+</b><span>Active Customers</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-repeat"></use></svg></span><b>68%</b><span>Repeat Rate</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-user-plus"></use></svg></span><b>312</b><span>New This Week</span></div>
+          <div class="dstat-card"><span class="dstat-icon"><svg class="icon"><use href="#icon-star"></use></svg></span><b>4.8</b><span>Avg. Rating</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h4>Top Customers</h4></div>
+          <div class="grid-2">
+            <div class="cust-card"><div class="cust-avatar">P</div><div class="cust-info"><b>Priya Nair</b><span>Harvest Weekly · 47 orders</span></div></div>
+            <div class="cust-card"><div class="cust-avatar">D</div><div class="cust-info"><b>Daniel Ruiz</b><span>Standard · 12 orders</span></div></div>
+            <div class="cust-card"><div class="cust-avatar">M</div><div class="cust-info"><b>Marissa Cole</b><span>Harvest Weekly · 31 orders</span></div></div>
+            <div class="cust-card"><div class="cust-avatar">J</div><div class="cust-info"><b>Jordan Blake</b><span>Standard · 8 orders</span></div></div>
+            <div class="cust-card"><div class="cust-avatar">S</div><div class="cust-info"><b>Sofia Alvarez</b><span>Standard · 5 orders</span></div></div>
+            <div class="cust-card"><div class="cust-avatar">M</div><div class="cust-info"><b>Marcus Webb</b><span>Harvest Weekly · 22 orders</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ FARMS PANEL ============ -->
+      <div class="dash-panel" id="panel-farms">
+        <div class="panel-head" style="margin:0;">
+          <div><div class="eyebrow">Sourcing</div><h2>Farm Suppliers</h2></div>
+          <button class="btn btn-primary btn-sm" onclick="error()">+ Add Supplier</button>
+        </div>
+        <div class="grid-3">
+          <div class="farm-card"><h4>Rooted Acres Farm</h4><p>Produce · Millbrook, NY</p><div class="farm-meta"><span>Supplying since 2022</span><span class="status active-s" style="padding:4px 10px;border-radius:100px;">Active</span></div></div>
+          <div class="farm-card"><h4>Hudson Dairy Collective</h4><p>Dairy · Rhinebeck, NY</p><div class="farm-meta"><span>Supplying since 2021</span><span class="status active-s" style="padding:4px 10px;border-radius:100px;">Active</span></div></div>
+          <div class="farm-card"><h4>Stonegrind Bakehouse</h4><p>Bakery · Poughkeepsie, NY</p><div class="farm-meta"><span>Supplying since 2023</span><span class="status active-s" style="padding:4px 10px;border-radius:100px;">Active</span></div></div>
+          <div class="farm-card"><h4>Kingston River Fisheries</h4><p>Seafood · Kingston, NY</p><div class="farm-meta"><span>Applied Jul 2026</span><span class="status review" style="padding:4px 10px;border-radius:100px;">Pending Review</span></div></div>
+          <div class="farm-card"><h4>Green Hollow Orchards</h4><p>Fruit · New Paltz, NY</p><div class="farm-meta"><span>Supplying since 2020</span><span class="status active-s" style="padding:4px 10px;border-radius:100px;">Active</span></div></div>
+          <div class="farm-card"><h4>Catskill Honey Works</h4><p>Pantry · Woodstock, NY</p><div class="farm-meta"><span>Supplying since 2024</span><span class="status active-s" style="padding:4px 10px;border-radius:100px;">Active</span></div></div>
+        </div>
+      </div>
+
+      <!-- ============ ANALYTICS PANEL ============ -->
+      <div class="dash-panel" id="panel-analytics">
+        <div class="panel-head" style="margin:0;"><div><div class="eyebrow">Insights</div><h2>Analytics</h2></div></div>
+        <div class="dash-grid-2">
+          <div class="panel">
+            <div class="panel-head"><h4>Revenue — Last 7 Days</h4><span class="see-all">$18,420 total</span></div>
+            <div class="rev-chart">
+              <div class="rev-bar-col"><div class="rev-bar" style="height:52%;"></div><span>Mon</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:68%;"></div><span>Tue</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:44%;"></div><span>Wed</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:81%;"></div><span>Thu</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:95%;"></div><span>Fri</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:73%;"></div><span>Sat</span></div>
+              <div class="rev-bar-col"><div class="rev-bar" style="height:60%;"></div><span>Sun</span></div>
+            </div>
+            <div class="mini-stats">
+              <span class="mini-stat">Avg order value <b>$46.10</b></span>
+              <span class="mini-stat">Conversion <b>3.4%</b></span>
+              <span class="mini-stat">Cart abandon <b>21%</b></span>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h4>Top Selling Products</h4></div>
+            <div class="low-stock-list">
+              <div class="low-stock-item"><div><b>1. Heirloom Tomatoes</b><span>842 units sold</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">↑ 18%</span></div>
+              <div class="low-stock-item"><div><b>2. Wild Sourdough</b><span>710 units sold</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">↑ 12%</span></div>
+              <div class="low-stock-item"><div><b>3. Pasture Eggs (Dozen)</b><span>688 units sold</span></div><span class="stock-pill" style="background:rgba(63,133,85,.12);color:var(--leaf);">↑ 9%</span></div>
+              <div class="low-stock-item"><div><b>4. Hass Avocado</b><span>601 units sold</span></div><span class="stock-pill">↓ 3%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SETTINGS PANEL ============ -->
+      <div class="dash-panel" id="panel-settings">
+        <div class="panel-head" style="margin:0;"><div><div class="eyebrow">Configuration</div><h2>Settings</h2></div></div>
+        <div class="dash-grid-2">
+          <div class="panel">
+            <div class="panel-head"><h4>Store Profile</h4></div>
+            <form class="settings-form">
+              <div class="field"><label>Store Name</label><input type="text" value="Stackly Grocery & Supermarket" data-validate="text" required></div>
+              <div class="field"><label>Admin Name</label><input type="text" id="settingsName" value="Elena Marsh" data-validate="text" required></div>
+              <div class="field"><label>Admin Email</label><input type="email" id="settingsEmail" value="admin@stackly.com" required></div>
+              <div class="field"><label>Support Phone</label><input type="tel" value="(845) 555-0148" data-validate="phone" required></div>
+              <button type="submit" class="btn btn-primary btn-sm" style="width:fit-content;">Save Changes</button>
+            </form>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h4>Preferences</h4></div>
+            <div class="toggle-row"><div><b>Low stock alerts</b><span>Notify when SKUs drop below threshold</span></div><div class="switch on"></div></div>
+            <div class="toggle-row"><div><b>New order emails</b><span>Send email on every new order</span></div><div class="switch on"></div></div>
+            <div class="toggle-row"><div><b>Weekly report</b><span>Sunday performance summary</span></div><div class="switch"></div></div>
+            <div class="toggle-row"><div><b>Supplier applications</b><span>Alert on new farm supplier requests</span></div><div class="switch on"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ---------- Custom cursor dot (desktop only) ---------- */
+    if(window.matchMedia('(min-width:900px) and (hover:hover)').matches){
+      const dot = document.createElement('div');
+      dot.style.cssText='position:fixed;width:14px;height:14px;border-radius:50%;background:var(--tangerine);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);opacity:0;';
+      document.body.appendChild(dot);
+      window.addEventListener('mousemove', e=>{
+        gsap.to(dot,{x:e.clientX,y:e.clientY,opacity:1,duration:.5,ease:'power3.out'});
+      });
+    }
+
+    /* ---------- Generic scroll reveal ---------- */
+    gsap.utils.toArray('.reveal').forEach((el)=>{
+      gsap.to(el,{
+        opacity:1,y:0,duration:1,ease:'power3.out',
+        scrollTrigger:{trigger:el,start:'top 88%'}
+      });
+    });
+
+    /* stagger groups */
+    gsap.utils.toArray('.reveal-group').forEach(group=>{
+      const items = group.querySelectorAll('.reveal-item');
+      gsap.set(items,{opacity:0,y:50});
+      gsap.to(items,{opacity:1,y:0,duration:.9,stagger:.12,ease:'power3.out',
+        scrollTrigger:{trigger:group,start:'top 85%'}});
+    });
+
+    /* ---------- Counters ---------- */
+    function runCounters(scope){
+      (scope||document).querySelectorAll('[data-count]').forEach(el=>{
+        if(el.dataset.counted) return;
+        const end = parseFloat(el.getAttribute('data-count'));
+        const suffix = el.getAttribute('data-suffix')||'';
+        const obj={val:0};
+        el.dataset.counted='1';
+        gsap.to(obj,{val:end,duration:1.4,ease:'power2.out',
+          onUpdate:()=>{el.textContent=(Number.isInteger(end)?Math.floor(obj.val):obj.val.toFixed(1))+suffix;}});
+      });
+    }
+    runCounters(document.getElementById('panel-overview'));
+
+    /* ---------- Rotating stamp on scroll ---------- */
+    gsap.utils.toArray('.stamp').forEach(el=>{
+      gsap.fromTo(el,{rotate:-30,scale:.6,opacity:0},{
+        rotate:-9,scale:1,opacity:1,duration:1,ease:'back.out(2)',
+        scrollTrigger:{trigger:el,start:'top 90%'}
+      });
+    });
+
+    /* ---------- Background canvas: floating produce blobs ---------- */
+    (function(){
+      const canvas = document.getElementById('bg-canvas');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let W,H;
+      function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;canvas.style.height='100vh';}
+      resize();
+      window.addEventListener('resize',resize);
+      const colors=['#3F8555','#E3B23C','#E8631E','#6FA96F'];
+      const blobs = Array.from({length:7}).map((_,i)=>({
+        x:Math.random()*W, y:Math.random()*H, r:60+Math.random()*90,
+        c:colors[i%colors.length], vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
+        t:Math.random()*1000
+      }));
+      function draw(){
+        ctx.clearRect(0,0,W,H);
+        blobs.forEach(b=>{
+          b.x+=b.vx; b.y+=b.vy; b.t+=0.008;
+          if(b.x<-150)b.x=W+150; if(b.x>W+150)b.x=-150;
+          if(b.y<-150)b.y=H+150; if(b.y>H+150)b.y=-150;
+          const rad = b.r + Math.sin(b.t)*10;
+          const g = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,rad);
+          g.addColorStop(0, b.c+'33');
+          g.addColorStop(1, b.c+'00');
+          ctx.fillStyle=g;
+          ctx.beginPath();
+          ctx.arc(b.x,b.y,rad,0,Math.PI*2);
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* respect reduced motion */
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      gsap.globalTimeline.timeScale(50);
+    }
+
+    const dashBurger = document.getElementById('dashBurger');
+    const dashSidebar = document.getElementById('dashSidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    function toggleSidebar(){
+      dashSidebar.classList.toggle('open');
+      document.body.classList.toggle('sidebar-open', dashSidebar.classList.contains('open'));
+    }
+    function closeSidebar(){
+      dashSidebar.classList.remove('open');
+      document.body.classList.remove('sidebar-open');
+    }
+    if(dashBurger){ dashBurger.addEventListener('click', toggleSidebar); }
+    if(sidebarBackdrop){ sidebarBackdrop.addEventListener('click', closeSidebar); }
+
+    /* ---------- Panel switching ---------- */
+    function showPanel(name, skipSave){
+      document.querySelectorAll('.dash-panel').forEach(p=>p.classList.remove('active'));
+      const target = document.getElementById('panel-'+name);
+      if(!target) return;
+      target.classList.add('active');
+
+      document.querySelectorAll('.dnav[data-panel]').forEach(l=>l.classList.remove('active'));
+      const navLink = document.querySelector('.dnav[data-panel="'+name+'"]');
+      if(navLink) navLink.classList.add('active');
+
+      const topbarTitle = document.getElementById('topbarPanelTitle');
+      if(topbarTitle) topbarTitle.textContent = navLink ? navLink.textContent.trim() : name;
+
+      if(!skipSave){
+        try{ sessionStorage.setItem('stackly_admin_active_panel', name); }catch(e){}
+      }
+
+      gsap.fromTo(target.children,{opacity:0,y:24},{opacity:1,y:0,duration:.55,stagger:.06,ease:'power3.out'});
+      runCounters(target);
+      closeSidebar();
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    document.querySelectorAll('.dnav[data-panel]').forEach(link=>{
+      link.addEventListener('click', e=>{
+        e.preventDefault();
+        showPanel(link.getAttribute('data-panel'));
+      });
+    });
+    document.querySelectorAll('[data-goto]').forEach(el=>{
+      el.addEventListener('click', e=>{
+        e.preventDefault();
+        showPanel(el.getAttribute('data-goto'));
+      });
+    });
+
+    /* ---------- Restore last active panel (reload / back navigation) ---------- */
+    (function(){
+      try{
+        const saved = sessionStorage.getItem('stackly_admin_active_panel');
+        if(saved && document.getElementById('panel-'+saved)){
+          showPanel(saved, true);
+        }
+      }catch(e){}
+    })();
+
+    document.querySelectorAll('.switch').forEach(sw=>{
+      sw.addEventListener('click', ()=> sw.classList.toggle('on'));
+    });
+
+    document.querySelectorAll('.rev-bar').forEach(bar=>{
+      const target = bar.style.height;
+      gsap.fromTo(bar,{height:'0%'},{
+        height:target,duration:1.2,ease:'power3.out',
+        scrollTrigger:{trigger:bar,start:'top 95%'}
+      });
+    });
+
+    /* ---------- Personalize from login (name / email / avatar) ---------- */
+    (function(){
+      try{
+        const raw = sessionStorage.getItem('stackly_user');
+        if(!raw) return;
+        const u = JSON.parse(raw);
+        const name = (u.name || '').trim();
+        const email = (u.email || '').trim();
+        if(!name && !email) return;
+        const firstName = name ? name.split(' ')[0] : email.split('@')[0];
+        const initialSrc = name || email || '?';
+        const initial = initialSrc.trim().charAt(0).toUpperCase();
+
+        const welcomeHeading = document.getElementById('welcomeHeading');
+        if(welcomeHeading) welcomeHeading.textContent = 'Welcome back, ' + firstName + '.';
+
+        const dtName = document.getElementById('dtName');
+        const dtEmail = document.getElementById('dtEmail');
+        const dtAvatar = document.getElementById('dtAvatar');
+        if(dtName) dtName.textContent = name || firstName;
+        if(dtEmail) dtEmail.textContent = email || 'Store Administrator';
+        if(dtAvatar) dtAvatar.textContent = initial;
+
+        const settingsName = document.getElementById('settingsName');
+        const settingsEmail = document.getElementById('settingsEmail');
+        if(settingsName && name) settingsName.value = name;
+        if(settingsEmail && email) settingsEmail.value = email;
+      }catch(e){}
+    })();
+   
+
+    /* ---------- Log out clears the session ---------- */
+    const logoutBtn = document.getElementById('logoutBtn');
+    if(logoutBtn){
+      logoutBtn.addEventListener('click', function(){
+        try{ sessionStorage.removeItem('stackly_user'); sessionStorage.removeItem('stackly_admin_active_panel'); }catch(e){}
+      });
+    }
+     function error(){
+      window.location.href="404.html";
+    }
+
+    function navhand(){
+      window.location.href="index.html";
+    }
+</script>
+<script src="js/prototype-guard.js"></script>
+</body>
+</html>

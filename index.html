@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home — Stackly Grocery & Supermarket</title>
+<meta name="description" content="Farm-fresh groceries delivered in 45 minutes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+    :root{
+      --forest-dark:#0F2E1F;
+      --forest:#1E4B32;
+      --leaf:#3F8555;
+      --leaf-light:#6FA96F;
+      --gold:#E3B23C;
+      --tangerine:#E8631E;
+      --cream:#FBF7EC;
+      --paper:#F2E9D6;
+      --kraft:#C9A66B;
+      --kraft-dark:#8A6C3F;
+      --ink:#1B1B15;
+      --ink-soft:#4A4A3E;
+      --line:rgba(27,27,21,.12);
+      --white:#FFFFFF;
+      --font-display:'Fraunces',serif;
+      --font-body:'Inter',sans-serif;
+      --font-mono:'Space Mono',monospace;
+      --radius:18px;
+      --shadow-soft:0 20px 50px -20px rgba(15,46,31,.35);
+      --shadow-card:0 10px 30px -12px rgba(27,27,21,.25);
+    }
+    *,*::before,*::after{box-sizing:border-box;}
+    html{
+      scroll-behavior:smooth;
+      overflow-x:hidden;
+      width:100%;
+    }
+    body{
+      margin:0;
+      font-family:var(--font-body);
+      background:var(--cream);
+      color:var(--ink);
+      overflow-x:hidden;
+      width:100%;
+      -webkit-font-smoothing:antialiased;
+    }
+    img{max-width:100%;display:block;}
+    a{color:inherit;text-decoration:none;}
+    ul{list-style:none;margin:0;padding:0;}
+    h1,h2,h3,h4{font-family:var(--font-display);margin:0;font-weight:600;letter-spacing:-.01em;}
+    p{margin:0;line-height:1.65;color:var(--ink-soft);}
+    button{font-family:inherit;cursor:pointer;}
+    :focus-visible{outline:3px solid var(--tangerine);outline-offset:3px;}
+    .wrap{max-width:1600px;margin:0 auto;padding:0 clamp(24px,4vw,64px);}
+    .eyebrow{
+      font-family:var(--font-mono);
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-size:12.5px;
+      color:var(--leaf);
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .eyebrow::before{content:'';width:22px;height:1px;background:var(--leaf);}
+
+    /* ---------- BACKGROUND CANVAS (webflow-style floating produce blobs) ---------- */
+    #bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.55;}
+    .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+    /* ---------- HEADER / NAV ---------- */
+    header.site{
+      position:fixed;top:0;left:0;right:0;z-index:100;
+      padding:22px 0;
+      transition:padding .4s ease,background .4s ease,box-shadow .4s ease;
+    }
+    header.site.scrolled{
+      padding:12px 0;
+      background:rgba(251,247,236,.88);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      box-shadow:0 8px 30px -18px rgba(27,27,21,.3);
+      border-bottom:1px solid var(--line);
+    }
+    nav.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+    .logo{display:flex;align-items:center;gap:2px;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--forest-dark);flex-shrink:0;}
+    .mark-logo{width:36px;height:36px;border-radius:10px;object-fit:contain;flex-shrink:0;}
+    .nav-links{display:flex;align-items:center;gap:2px;}
+    .nav-links a{
+      padding:10px 16px;font-size:14.5px;font-weight:500;color:var(--ink);
+      position:relative;border-radius:100px;
+    }
+    .nav-links a::after{
+      content:'';position:absolute;left:16px;right:16px;bottom:6px;height:1px;background:var(--tangerine);
+      transform:scaleX(0);transform-origin:right;transition:transform .35s ease;
+    }
+    .nav-links a:hover::after,.nav-links a.active::after{transform:scaleX(1);transform-origin:left;}
+    .nav-links a.active{color:var(--forest-dark);font-weight:700;}
+    .nav-cta{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .nb-text{display:inline;}
+    .burger{
+      display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;
+      background:none;border:none;width:40px;height:40px;padding:0;flex-shrink:0;z-index:200;position:relative;
+    }
+    .burger span{width:22px;height:2px;background:var(--ink);border-radius:2px;transition:transform .35s ease,opacity .25s ease;}
+    header.site.scrolled .burger span{background:var(--ink);}
+    .nav-overlay{
+      position:fixed;inset:0;background:rgba(15,46,31,.55);
+      opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:140;
+    }
+    .nav-overlay.show{opacity:1;pointer-events:auto;}
+    .nav-mobile-actions{display:none;}
+
+    /* ---------- BUTTONS ---------- */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px 28px;border-radius:100px;font-weight:600;font-size:14.5px;
+      border:1px solid transparent;position:relative;overflow:hidden;isolation:isolate;
+      transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease;
+      white-space:nowrap;
+    }
+    .btn:active{transform:scale(.96);}
+    .btn-primary{background:var(--tangerine);color:var(--white);box-shadow:0 10px 25px -10px rgba(232,99,30,.6);}
+    .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 30px -10px rgba(232,99,30,.7);}
+    .btn-dark{background:var(--forest-dark);color:var(--cream);}
+    .btn-dark:hover{transform:translateY(-3px);background:var(--forest);}
+    .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink);}
+    .btn-ghost:hover{border-color:var(--forest);background:rgba(63,133,85,.06);}
+    .btn-sm{padding:10px 18px;font-size:13px;}
+    .btn-block{width:100%;}
+
+    /* ---------- STAMP BADGE (signature element) ---------- */
+    .stamp{
+      width:108px;height:108px;border-radius:50%;
+      border:2px dashed var(--forest);
+      display:grid;place-items:center;text-align:center;
+      font-family:var(--font-mono);color:var(--forest);
+      transform:rotate(-9deg);
+      font-size:11px;text-transform:uppercase;letter-spacing:.08em;line-height:1.5;
+      flex-shrink:0;background:rgba(63,133,85,.05);
+    }
+    .stamp b{display:block;font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--tangerine);letter-spacing:0;text-transform:none;}
+    .stamp.gold{border-color:var(--gold);color:var(--kraft-dark);}
+    .stamp.gold b{color:var(--gold);}
+
+    /* ---------- CRATE DIVIDER (signature element) ---------- */
+    .crate-divider{width:100%;height:64px;display:block;color:var(--cream);}
+    .crate-divider path{fill:currentColor;}
+    .section{position:relative;padding:120px 0;z-index:2;}
+    .section.tight{padding:80px 0;}
+    .section-dark{background:var(--forest-dark);color:var(--cream);}
+    .section-dark p{color:rgba(251,247,236,.72);}
+    .section-dark h2,.section-dark h3,.section-dark h4{color:var(--cream);}
+    .section-paper{background:var(--paper);}
+
+    .head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px;flex-wrap:wrap;}
+    .head-row h2{font-size:clamp(32px,4.2vw,52px);max-width:640px;}
+    .head-row p{max-width:420px;}
+
+    /* split-text hero utility */
+    .split-line{overflow:hidden;display:block;}
+    .split-line > span{display:inline-block;will-change:transform;}
+    .char{display:inline-block;will-change:transform,opacity;}
+
+    /* reveal utility (scroll trigger targets) */
+    .reveal{opacity:0;transform:translateY(40px);}
+    .fade-img{clip-path:inset(0 0 100% 0);}
+
+    /* grid helpers */
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+
+    /* card */
+    .card{
+      background:var(--white);border-radius:var(--radius);padding:28px;
+      box-shadow:var(--shadow-card);border:1px solid var(--line);
+      transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease;
+    }
+    .card:hover{transform:translateY(-8px);box-shadow:0 30px 50px -20px rgba(27,27,21,.3);}
+
+    /* marquee */
+    .marquee{overflow:hidden;white-space:nowrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0;}
+    .marquee-track{display:inline-flex;gap:60px;animation:marquee 26s linear infinite;}
+    .marquee-track span{font-family:var(--font-display);font-size:26px;color:var(--ink);opacity:.5;display:inline-flex;align-items:center;gap:16px;}
+    .marquee-track span i{width:6px;height:6px;border-radius:50%;background:var(--tangerine);display:inline-block;opacity:1;}
+    @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+    /* product / menu card */
+    .product-card{background:var(--white);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-card);position:relative;transition:transform .4s ease,box-shadow .4s ease;}
+    .product-card:hover{transform:translateY(-6px);box-shadow:0 30px 45px -20px rgba(27,27,21,.28);}
+    .product-media{aspect-ratio:1/0.85;overflow:hidden;position:relative;background:var(--paper);}
+    .product-media img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1);}
+    .product-card:hover .product-media img{transform:scale(1.09);}
+    .tag{position:absolute;top:14px;left:14px;background:var(--forest-dark);color:var(--gold);font-family:var(--font-mono);font-size:11px;padding:6px 12px;border-radius:100px;text-transform:uppercase;letter-spacing:.06em;z-index:2;}
+    .product-body{padding:20px;}
+    .product-body h4{font-size:18px;margin-bottom:6px;}
+    .product-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+    .price{font-family:var(--font-mono);font-weight:700;color:var(--tangerine);font-size:17px;}
+    .price s{color:var(--ink-soft);font-weight:400;margin-right:6px;opacity:.5;}
+    .add-btn{width:42px;height:42px;border-radius:50%;background:var(--forest);color:var(--cream);border:none;font-size:20px;display:grid;place-items:center;transition:transform .3s ease,background .3s ease;}
+    .add-btn:hover{transform:scale(1.1) rotate(90deg);background:var(--tangerine);}
+    .rating{font-family:var(--font-mono);font-size:12px;color:var(--kraft-dark);display:flex;gap:4px;align-items:center;}
+
+    /* forms */
+    .field{margin-bottom:20px;}
+    .field label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
+    .field input,.field textarea,.field select{
+      width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--line);
+      background:var(--white);font-family:var(--font-body);font-size:15px;color:var(--ink);
+      transition:border-color .3s ease,box-shadow .3s ease;
+    }
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--leaf);box-shadow:0 0 0 4px rgba(63,133,85,.12);outline:none;}
+    .field textarea{resize:vertical;min-height:130px;}
+
+    /* footer */
+    footer.site{background:var(--forest-dark);color:rgba(251,247,236,.75);padding:90px 0 30px;position:relative;z-index:2;}
+    footer.site h4{color:var(--cream);font-size:15px;margin-bottom:18px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+    footer.site .logo{display:inline-flex;flex-direction:row;align-items:center;flex-wrap:nowrap;gap:2px;font-size:28px;}
+    footer.site .mark-logo{width:46px;height:46px;}
+    footer.site a{color:rgba(251,247,236,.7);font-size:14.5px;transition:color .25s ease,padding-left .25s ease;display:inline-block;}
+    footer.site a:hover{color:var(--gold);padding-left:4px;}
+    .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.3fr;gap:40px;margin-bottom:70px;}
+    .foot-bottom{border-top:1px solid rgba(251,247,236,.12);padding-top:26px;display:flex;justify-content:space-between;font-size:13px;color:rgba(251,247,236,.5);flex-wrap:wrap;gap:12px;}
+   
+
+.social-row{display:flex;gap:12px;margin-top:18px;}
+.social-row a{
+  position:relative;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  border:1px solid rgba(251,247,236,.4);
+  color:var(--cream);
+  flex-shrink:0;
+  transition:transform .3s ease,background .3s ease,color .3s ease,border-color .3s ease;
+}
+.social-row a svg{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:16px;
+  height:16px;
+}
+
+
+    .contact-list{display:flex;flex-direction:column;gap:16px;}
+    .contact-list li{display:flex;align-items:center;gap:12px;font-size:14.5px;color:rgba(251,247,236,.78);}
+    .contact-list svg{width:17px;height:17px;flex-shrink:0;color:var(--gold);}
+
+    /* cursor blob */
+    .cursor-dot{position:fixed;width:14px;height:14px;border-radius:50%;background:var(--tangerine);pointer-events:none;z-index:9999;mix-blend-mode:normal;transform:translate(-50%,-50%);transition:transform .15s ease;opacity:0;}
+
+    /* ---------- PRELOADER ---------- */
+    html.preload-lock,html.preload-lock body{overflow:hidden;height:100%;}
+    #preloader{
+      position:fixed;inset:0;z-index:100000;
+      background:
+        radial-gradient(circle at 30% 20%,rgba(63,133,85,.35),transparent 55%),
+        radial-gradient(circle at 75% 80%,rgba(227,178,60,.18),transparent 50%),
+        var(--forest-dark);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    #preloader .goo-stage{position:relative;width:190px;height:190px;margin-bottom:8px;}
+    #preloader .goo-wrap{position:absolute;inset:0;filter:url(#stackly-goo);}
+    #preloader .blob{position:absolute;border-radius:50%;}
+    #preloader .blob.b1{width:52px;height:52px;background:var(--gold);left:14px;top:64px;}
+    #preloader .blob.b2{width:44px;height:44px;background:var(--tangerine);left:96px;top:24px;}
+    #preloader .blob.b3{width:48px;height:48px;background:var(--leaf-light);left:118px;top:98px;}
+    #preloader .blob.b4{width:36px;height:36px;background:var(--cream);left:52px;top:118px;}
+    #preloader .blob.core{width:30px;height:30px;background:var(--gold);left:80px;top:80px;transform:scale(0);}
+    #preloader .basket-icon{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      opacity:0;pointer-events:none;
+    }
+    #preloader .basket-icon svg{width:56px;height:56px;color:var(--forest-dark);}
+    #preloader .word{display:flex;gap:.06em;font-family:var(--font-display);font-weight:800;font-size:clamp(26px,4.4vw,38px);color:var(--cream);letter-spacing:.01em;}
+    #preloader .word span{display:inline-block;transform:translateY(120%);opacity:0;}
+    #preloader .tagline{margin-top:12px;font-family:var(--font-mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);opacity:0;}
+    #preloader .bar-track{margin-top:26px;width:170px;height:3px;background:rgba(251,247,236,.15);border-radius:3px;overflow:hidden;opacity:0;}
+    #preloader .bar-fill{width:0%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--tangerine));}
+    #preloader .pct{margin-top:10px;font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:rgba(251,247,236,.55);opacity:0;}
+    #preloader .pct b{color:var(--cream);font-weight:700;}
+    @media (max-width:480px){
+      #preloader .goo-stage{width:150px;height:150px;transform:scale(.9);}
+    }
+
+    /* page hero generic */
+    .page-hero{padding:210px 0 100px;position:relative;z-index:2;}
+    .breadcrumb{font-family:var(--font-mono);font-size:12.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--leaf);margin-bottom:20px;display:flex;gap:8px;align-items:center;}
+
+    /* stat block */
+    .stat b{display:block;font-family:var(--font-display);font-size:clamp(36px,4vw,54px);color:var(--forest-dark);}
+    .stat span{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);}
+
+    /* utility */
+    .center{text-align:center;}
+    .mt{margin-top:40px;}
+    .flex-c{display:flex;align-items:center;gap:14px;}
+    ::selection{background:var(--gold);color:var(--forest-dark);}
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width:1080px){
+      .wrap{padding:0 28px;}
+      .grid-4{grid-template-columns:repeat(2,1fr);}
+      .foot-grid{grid-template-columns:1fr 1fr;gap:36px 24px;}
+    }
+    @media (max-width:899px){
+      .nav-links{
+        position:fixed;top:0;right:0;height:100vh;width:min(78vw,320px);
+        background:var(--forest-dark);flex-direction:column;justify-content:flex-start;align-items:flex-start;
+        padding:110px 32px 40px;gap:2px;overflow-y:auto;
+        transform:translateX(100%);transition:transform .5s cubic-bezier(.2,.8,.2,1);z-index:150;
+      }
+      .nav-links.open{transform:translateX(0);}
+      .nav-links li{width:100%;}
+      .nav-links a{color:var(--cream);font-size:18px;width:100%;padding:14px 6px;display:block;}
+      .nav-links a::after{display:none;}
+      .nav-links a.active{color:var(--gold);font-weight:700;}
+      header.site.scrolled .nav-links a{color:var(--cream);}
+      header.site.scrolled .nav-links a.active{color:var(--gold);}
+      .burger{display:flex;}
+      .nav-cta .btn-ghost{display:none;}
+      .nav-cta .nav-order-btn{display:none;}
+      .nav-mobile-actions{
+        display:flex;flex-direction:column;align-items:center;gap:12px;
+        width:100%;margin-top:16px;padding-top:18px;
+        border-top:1px solid rgba(251,247,236,.15);
+      }
+      .nav-mobile-actions .btn{width:100%;}
+      .nav-mobile-actions a.btn-ghost{width:auto;min-width:170px;padding:14px 32px;}
+      .nav-mobile-actions .btn-ghost{border-color:rgba(251,247,236,.3);color:var(--cream);background:transparent;}
+      .grid-2{grid-template-columns:1fr;gap:36px;}
+      .grid-3{grid-template-columns:1fr 1fr;}
+      .foot-grid{grid-template-columns:1fr 1fr;}
+    }
+    @media (max-width:480px){
+      .nb-text{display:none;}
+      .nav-order-btn{padding:11px;border-radius:50%;}
+      .logo{font-size:19px;}
+      .mark-logo{width:30px;height:30px;}
+      .nav-cta{gap:8px;}
+    }
+    @media (max-width:640px){
+      .wrap{padding:0 20px;}
+      .section{padding:80px 0;}
+      .page-hero{padding:150px 0 60px;}
+      .grid-3{grid-template-columns:1fr;}
+      .grid-4{grid-template-columns:1fr;gap:20px;}
+      .head-row{margin-bottom:36px;}
+      .filter-tabs{width:100%;}
+      .product-media{aspect-ratio:16/11;}
+      .card{padding:24px;}
+      .foot-grid{grid-template-columns:1fr;gap:32px;margin-bottom:40px;}
+      .marquee-track span{font-size:19px;}
+      .stamp{width:88px;height:88px;font-size:9.5px;}
+      .stamp b{font-size:15px;}
+    }
+    @media (max-width:380px){
+      .wrap{padding:0 16px;}
+      .logo{font-size:17px;}
+      .nav-links{width:min(82vw,280px);padding:100px 24px 30px;}
+    }
+    .hero-section::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      background-image:url('./assets/home\ bg.webp');
+      background-size:cover;
+      background-position:center;
+      opacity:.10;
+      z-index:0;
+      pointer-events:none;
+    }
+    .hero-section .wrap{position:relative;z-index:1;}
+    .hero-grid{display:grid;grid-template-columns:1fr 0.95fr;gap:50px;align-items:center;}
+    .hero-title{font-size:clamp(38px,5.6vw,74px);line-height:1.03;margin:6px 0 26px;}
+    .hero-sub{max-width:480px;font-size:17px;margin-bottom:36px;}
+    .hero-btns{display:flex;gap:16px;margin-bottom:56px;flex-wrap:wrap;}
+    .hero-stats{display:flex;gap:44px;flex-wrap:wrap;}
+    .hero-media{position:relative;}
+    .hero-img-wrap{border-radius:28px;overflow:hidden;aspect-ratio:1/1.05;box-shadow:var(--shadow-soft);}
+    .hero-img-wrap img{width:100%;height:100%;object-fit:cover;}
+    .hero-stamp{position:absolute;top:-24px;right:-10px;background:var(--cream);box-shadow:var(--shadow-card);}
+    .floating-card{position:absolute;background:var(--white);border-radius:16px;padding:14px 18px;box-shadow:var(--shadow-card);display:flex;align-items:center;gap:12px;}
+    .floating-card img{width:44px;height:44px;border-radius:10px;object-fit:cover;}
+    .floating-card b{display:block;font-size:14px;}
+    .floating-card span{font-size:12px;color:var(--ink-soft);}
+    .fc-icon{font-size:26px;}
+    .fc1{left:-30px;bottom:70px;animation:floaty 4s ease-in-out infinite;}
+    .fc2{right:-20px;bottom:-24px;animation:floaty 5s ease-in-out infinite .6s;}
+    @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+
+    .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+    .cat-card{
+      position:relative;border-radius:20px;height:190px;background-size:cover;background-position:center;
+      display:flex;align-items:flex-end;padding:20px;overflow:hidden;box-shadow:var(--shadow-card);
+    }
+    .cat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(15,46,31,.75),rgba(15,46,31,.05) 60%);transition:background .4s ease;}
+    .cat-card:hover::before{background:linear-gradient(0deg,rgba(232,99,30,.75),rgba(15,46,31,.1) 60%);}
+    .cat-card span{position:relative;z-index:1;color:var(--cream);font-family:var(--font-display);font-size:19px;font-weight:600;}
+    .cat-card{transform:scale(1);transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease;}
+    .cat-card:hover{transform:scale(1.03) translateY(-4px);}
+
+    .filter-tabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;padding-bottom:2px;}
+    .filter-tabs::-webkit-scrollbar{display:none;}
+    .tab{padding:9px 18px;border-radius:100px;border:1px solid var(--line);background:var(--white);font-size:13.5px;font-weight:600;color:var(--ink-soft);transition:.3s;flex-shrink:0;white-space:nowrap;}
+    .tab.active,.tab:hover{background:var(--forest-dark);color:var(--cream);border-color:var(--forest-dark);}
+
+    .icon-badge{width:52px;height:52px;border-radius:14px;background:var(--paper);display:grid;place-items:center;font-size:24px;margin-bottom:18px;}
+
+    .steps-row{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+    .step{position:relative;padding:36px 26px;background:var(--white);border-radius:20px;border:1px solid var(--line);}
+    .step-num{font-family:var(--font-mono);font-size:44px;color:var(--gold);font-weight:700;display:block;margin-bottom:14px;opacity:.8;}
+    .step h4{font-size:20px;margin-bottom:10px;}
+
+    .testi{background:rgba(251,247,236,.06);border:1px solid rgba(251,247,236,.14);border-radius:20px;padding:30px;}
+    .testi p{color:rgba(251,247,236,.9);font-family:var(--font-display);font-size:17.5px;font-weight:500;line-height:1.5;margin-bottom:24px;}
+    .testi-person{display:flex;align-items:center;gap:12px;}
+    .testi-person img{width:44px;height:44px;border-radius:50%;object-fit:cover;}
+    .testi-person b{color:var(--cream);font-size:14px;display:block;}
+    .testi-person span{font-size:12.5px;color:rgba(251,247,236,.6);}
+
+    .blog-card{display:block;}
+    .blog-img{border-radius:18px;overflow:hidden;aspect-ratio:4/3;margin-bottom:18px;box-shadow:var(--shadow-card);}
+    .blog-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease;}
+    .blog-card:hover .blog-img img{transform:scale(1.08);}
+    .blog-tag{font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--tangerine);}
+    .blog-card h4{font-size:19px;margin:10px 0 8px;}
+
+    .cta-banner{
+      background:var(--forest-dark);border-radius:28px;padding:60px;
+      display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center;color:var(--cream);
+      position:relative;overflow:hidden;
+    }
+    .cta-banner::after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(227,178,60,.35),transparent 70%);}
+    .cta-banner::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      background-image:url('./assets/home\ float.webp');
+      background-size:cover;
+      background-position:center;
+      opacity:.14;
+      z-index:0;
+    }
+    .cta-banner > div{position:relative;z-index:1;}
+    .newsletter-form{display:flex;gap:10px;position:relative;z-index:1;}
+    .newsletter-form input{flex:1;padding:16px 18px;border-radius:100px;border:none;font-family:var(--font-body);font-size:14.5px;}
+
+    @media (max-width:1080px){
+      .cat-grid{grid-template-columns:repeat(2,1fr);}
+    }
+    @media (max-width:900px){
+      .hero-grid{grid-template-columns:1fr;gap:0;}
+      .hero-media{order:-1;max-width:420px;margin:0 auto 14px;}
+      .hero-copy .eyebrow{line-height:1.2;margin-bottom:10px;}
+      .steps-row{grid-template-columns:1fr;}
+      .cta-banner{grid-template-columns:1fr;padding:40px;}
+    }
+    @media (max-width:640px){
+      .hero-stats{gap:26px;}
+      .cat-grid{grid-template-columns:1fr 1fr;}
+      .newsletter-form{flex-direction:column;}
+      .hero-media{display:none !important;}
+      .hero-section{padding:118px 0 60px !important;}
+      .hero-btns{margin-bottom:40px;}
+      .hero-title{margin:4px 0 18px;}
+      .hero-sub{margin-bottom:28px;}
+      .cta-banner{border-radius:20px;}
+    }
+    @media (max-width:400px){
+      .cat-grid{grid-template-columns:1fr;}
+      .hero-stats{gap:20px 30px;}
+      .stat b{font-size:30px;}
+    }
+    .contact-heading{font-family:var(--font-display);font-size:19px;font-weight:800;color:var(--cream);position:relative;padding-bottom:14px;margin-bottom:20px;}
+    .contact-heading::after{content:'';position:absolute;left:0;bottom:0;width:38px;height:3px;background:var(--gold);border-radius:2px;}
+</style>
+</head>
+<body>
+<div id="preloader" role="status" aria-label="Loading Stackly">
+  <svg width="0" height="0" style="position:absolute;">
+    <defs>
+      <filter id="stackly-goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur"/>
+        <feColorMatrix in="blur" mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo"/>
+      </filter>
+    </defs>
+  </svg>
+  <div class="goo-stage">
+    <div class="goo-wrap">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+      <div class="blob b4"></div>
+      <div class="blob core"></div>
+    </div>
+    <div class="basket-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 8h16l-1.5 11a2 2 0 0 1-2 1.8H7.5a2 2 0 0 1-2-1.8L4 8Z"/>
+        <path d="M8 8V6a4 4 0 0 1 8 0v2"/>
+        <path d="M9 12v5M15 12v5"/>
+      </svg>
+    </div>
+  </div>
+  <div class="word" aria-hidden="true">
+    <span>S</span><span>t</span><span>a</span><span>c</span><span>k</span><span>l</span><span>y</span>
+  </div>
+  <div class="tagline">Stacking today's fresh picks</div>
+  <div class="bar-track"><div class="bar-fill"></div></div>
+  <div class="pct"><b>0</b>%</div>
+</div>
+<canvas id="bg-canvas"></canvas>
+<div class="grain"></div>
+<header class="site">
+  <div class="wrap">
+    <nav class="bar">
+      <a href="index.html" class="logo"><img src="stackly-logo.webp" alt="Stackly logo" class="mark-logo">Stackly</a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="about.html" class="">About</a></li>
+        <li><a href="services.html" class="">Services</a></li>
+        <li><a href="menu.html" class="">Shop</a></li>
+        <li><a href="blog.html" class="">Blog</a></li>
+        <li><a href="contact.html" class="">Contact</a></li>
+        <li class="nav-mobile-actions">
+          <a href="login.html" class="btn btn-ghost">Log in</a>
+          <a href="./404.html" class="btn btn-primary">🛒 Order Now</a>
+        </li>
+      </ul>
+      <div class="nav-cta">
+        <a href="login.html" class="btn btn-ghost btn-sm nav-login-btn">Log in</a>
+        <a href="./404.html" class="btn btn-primary btn-sm nav-order-btn"><span class="nb-icon">🛒</span><span class="nb-text">Order Now</span></a>
+        <button class="burger" id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+  </div>
+  <div class="nav-overlay" id="navOverlay"></div>
+</header>
+<!-- ============ HERO ============ -->
+<section class="hero-section" style="position:relative;padding:170px 0 100px;overflow:hidden;z-index:2;">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow" data-hero-el>Farm to Doorstep in 45 Minutes</div>
+        <h1 class="hero-title">
+          <span class="split-line"><span data-split>Groceries grown</span></span>
+          <span class="split-line"><span data-split>with dirt still</span></span>
+          <span class="split-line"><span data-split style="color:var(--tangerine);">on their roots.</span></span>
+        </h1>
+        <p class="hero-sub" data-hero-el>Stackly partners with 340+ local farms to bring you produce picked at dawn, dairy from pasture-raised herds, and pantry staples with no shortcuts. One cart, everything fresh.</p>
+        <div class="hero-btns" data-hero-el>
+          <a href="./404.html class="btn btn-primary">Start Shopping →</a>
+          <a href="./404.html" class="btn btn-ghost">Our Story</a>
+        </div>
+        <div class="hero-stats" data-hero-el>
+          <div class="stat"><b data-count="340" data-suffix="+">0</b><span>Partner Farms</span></div>
+          <div class="stat"><b data-count="98" data-suffix="%">0</b><span>On-Time Delivery</span></div>
+          <div class="stat"><b data-count="52" data-suffix="k">0</b><span>Happy Households</span></div>
+        </div>
+      </div>
+      <div class="hero-media">
+        <div class="hero-img-wrap">
+          <img src="./assets/home float.webp" alt="Crate of fresh vegetables and produce" data-parallax="-14">
+        </div>
+        <div class="stamp gold hero-stamp"><b>100%</b>Organic<br>Certified</div>
+        <div class="floating-card fc1">
+          <img src="./assets/avacodo.webp" alt="Avocado">
+          <div><b>Avocado</b><span>$2.40 / pc</span></div>
+        </div>
+        <div class="floating-card fc2">
+          <span class="fc-icon">🚚</span>
+          <div><b>Delivered in 42 min</b><span>to Millbrook, NY</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRUST MARQUEE ============ -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span><i></i>Certified Organic</span>
+    <span><i></i>Same-Day Delivery</span>
+    <span><i></i>340+ Local Farms</span>
+    <span><i></i>Zero-Waste Packaging</span>
+    <span><i></i>Cold-Chain Guaranteed</span>
+    <span><i></i>Certified Organic</span>
+    <span><i></i>Same-Day Delivery</span>
+    <span><i></i>340+ Local Farms</span>
+    <span><i></i>Zero-Waste Packaging</span>
+    <span><i></i>Cold-Chain Guaranteed</span>
+  </div>
+</div>
+
+<!-- ============ CATEGORIES ============ -->
+<section class="section">
+  <div class="wrap">
+    <div class="head-row">
+      <div>
+        <div class="eyebrow">Shop by Department</div>
+        <h2>Nine aisles, all within arm's reach.</h2>
+      </div>
+      <p>From dew-fresh produce to small-batch pantry goods — every department is stocked daily and sorted by what's actually in season.</p>
+    </div>
+    <div class="cat-grid reveal-group">
+      <a href="./404.html" class="cat-card reveal-item" style="background-image:url('./assets/fruits\ and\ veg.webp')"><span>Fruits &amp; Veg</span></a>
+      <a href="./404.html" class="cat-card reveal-item" style="background-image:url('./assets/bakery.webp')"><span>Bakery</span></a>
+      <a href="./404.html" class="cat-card reveal-item" style="background-image:url('./assets/dairy.webp')"><span>Dairy &amp; Eggs</span></a>
+      <a href="./404.html" class="cat-card reveal-item" style="background-image:url('./assets/meat\ \ and\ sea\ food.webp')"><span>Meat &amp; Seafood</span></a>
+      <a href="./404.html" class="cat-card reveal-item" style="background-image:url('./assets/pantry.webp')"><span>Pantry</span></a>
+      <a href="./404.html" class="cat-card reveal-item" style="background-image:url('./assets/beverages.webp')"><span>Beverages</span></a>
+      <a href="./404.html" class="cat-card reveal-item" style="background-image:url('./assets/herbs\ and\ spices.webp')"><span>Herbs &amp; Spices</span></a>
+      <a href="./404.html" class="cat-card reveal-item" style="background-image:url('./assets/frozen.webp')"><span>Frozen</span></a>
+    </div>
+  </div>
+</section>
+
+<svg class="crate-divider" viewBox="0 0 1200 60" preserveAspectRatio="none" style="color:var(--forest-dark);"><path d="M0,30 Q50,55 100,30 T200,30 T300,30 T400,30 T500,30 T600,30 T700,30 T800,30 T900,30 T1000,30 T1100,30 T1200,30 L1200,60 L0,60 Z"/></svg>
+
+<!-- ============ ABOUT TEASER ============ -->
+<section class="section section-dark">
+  <div class="wrap grid-2">
+    <div class="about-media">
+      <img class="fade-img" src="./assets/sorting.webp" alt="Farmer sorting fresh produce crates" data-parallax="-10">
+    </div>
+    <div>
+      <div class="eyebrow">Since 2014</div>
+      <h2 data-split-line><span class="split-line"><span>Real farms.</span></span><span class="split-line"><span>Real faces.</span></span><span class="split-line"><span>No middlemen.</span></span></h2>
+      <p class="mt" style="max-width:460px;">We started Stackly with three farmers and a single delivery van. Twelve years later, we still visit every new supplier in person before their produce reaches your basket — because "fresh" should mean something.</p>
+      <div class="flex-c mt" style="gap:30px;">
+        <div class="stamp"><b data-count="12">0</b>Years<br>Rooted</div>
+        <div>
+          <p style="color:rgba(251,247,236,.85);">"The tomatoes taste like they did at my grandmother's table." — that's the bar we hold ourselves to, every single order.</p>
+          <a href="./404.html" class="btn btn-ghost btn-sm mt" style="border-color:rgba(251,247,236,.3);color:var(--cream);">Meet the Farmers →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BEST SELLERS ============ -->
+<section class="section section-paper">
+  <div class="wrap">
+    <div class="head-row">
+      <div><div class="eyebrow">This Week's Picks</div><h2>Best sellers, fresh off the crate.</h2></div>
+      <div class="filter-tabs">
+        <button class="tab active" data-filter="all">All</button>
+        <button class="tab" data-filter="produce">Produce</button>
+        <button class="tab" data-filter="bakery">Bakery</button>
+        <button class="tab" data-filter="dairy">Dairy</button>
+      </div>
+    </div>
+    <div class="grid-4 reveal-group" id="product-grid">
+      <div class="product-card reveal-item" data-cat="produce">
+        <div class="product-media"><span class="tag">Organic</span><img src="./assets/tomotos.webp" alt="Heirloom tomatoes"></div>
+        <div class="product-body"><span class="rating">★★★★★ (128)</span><h4>Heirloom Tomatoes</h4><p>1 kg · Locally grown</p>
+          <div class="product-row"><span class="price">$4.80</span><button class="add-btn" onclick="error()">+</button></div>
+        </div>
+      </div>
+      <div class="product-card reveal-item" data-cat="bakery">
+        <div class="product-media"><span class="tag">Fresh Baked</span><img src="./assets/Wild Sourdough.webp" alt="Sourdough loaf"></div>
+        <div class="product-body"><span class="rating">★★★★★ (94)</span><h4>Wild Sourdough</h4><p>800g loaf · Baked daily</p>
+          <div class="product-row"><span class="price"><s>$7.50</s>$6.20</span><button class="add-btn" onclick="error()">+</button></div>
+        </div>
+      </div>
+      <div class="product-card reveal-item" data-cat="dairy">
+        <div class="product-media"><span class="tag">Grass-Fed</span><img src="./assets/Pasture Eggs (Dozen).webp" alt="Farm eggs and dairy"></div>
+        <div class="product-body"><span class="rating">★★★★☆ (76)</span><h4>Pasture Eggs (Dozen)</h4><p>Free-range · Grade A</p>
+          <div class="product-row"><span class="price">$5.10</span><button class="add-btn" onclick="error()">+</button></div>
+        </div>
+      </div>
+      <div class="product-card reveal-item" data-cat="produce">
+        <div class="product-media"><span class="tag">New</span><img src="./assets/hass avacodo.webp" alt="Avocados"></div>
+        <div class="product-body"><span class="rating">★★★★★ (203)</span><h4>Hass Avocado</h4><p>Pack of 4 · Ready to eat</p>
+          <div class="product-row"><span class="price">$3.90</span><button class="add-btn" onclick="error()">+</button></div>
+        </div>
+      </div>
+      <div class="product-card reveal-item" data-cat="produce">
+        <div class="product-media"><span class="tag">Organic</span><img src="./assets/Rainbow Bell Peppers.webp" alt="Bell peppers"></div>
+        <div class="product-body"><span class="rating">★★★★★ (61)</span><h4>Rainbow Bell Peppers</h4><p>500g · Crisp &amp; sweet</p>
+          <div class="product-row"><span class="price">$3.20</span><button class="add-btn" onclick="error()">+</button></div>
+        </div>
+      </div>
+      <div class="product-card reveal-item" data-cat="dairy">
+        <div class="product-media"><span class="tag">Small Batch</span><img src="./assets/Artisan cheese.webp" alt="Artisan cheese"></div>
+        <div class="product-body"><span class="rating">★★★★★ (48)</span><h4>Aged Farmhouse Cheddar</h4><p>250g wedge</p>
+          <div class="product-row"><span class="price">$8.40</span><button class="add-btn" onclick="error()">+</button></div>
+        </div>
+      </div>
+      <div class="product-card reveal-item" data-cat="bakery">
+        <div class="product-media"><span class="tag">Fresh Baked</span><img src="./assets/butter corocent.webp" alt="Pastries"></div>
+        <div class="product-body"><span class="rating">★★★★☆ (39)</span><h4>Butter Croissants (4)</h4><p>Baked this morning</p>
+          <div class="product-row"><span class="price">$5.60</span><button class="add-btn" onclick="error()">+</button></div>
+        </div>
+      </div>
+      <div class="product-card reveal-item" data-cat="produce">
+        <div class="product-media"><span class="tag">Organic</span><img src="./assets/berries.webp" alt="Mixed berries"></div>
+        <div class="product-body"><span class="rating">★★★★★ (156)</span><h4>Mixed Berry Punnet</h4><p>400g · Hand-picked</p>
+          <div class="product-row"><span class="price">$6.90</span><button class="add-btn" onclick="error()">+</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="center mt"><a href="./404.html" class="btn btn-dark">View Full Shop →</a></div>
+  </div>
+</section>
+
+<!-- ============ WHY CHOOSE US ============ -->
+<section class="section">
+  <div class="wrap">
+    <div class="head-row"><div><div class="eyebrow">Why Stackly</div><h2>Grocery shopping, minus the compromise.</h2></div></div>
+    <div class="grid-4 reveal-group">
+      <div class="card reveal-item"><div class="icon-badge">🌱</div><h4>Sourced Daily</h4><p>Stock rotates with the harvest calendar — nothing sits in a warehouse for weeks.</p></div>
+      <div class="card reveal-item"><div class="icon-badge">🧊</div><h4>Cold-Chain Locked</h4><p>Insulated crates keep dairy, meat and produce at ideal temperature door to door.</p></div>
+      <div class="card reveal-item"><div class="icon-badge">💳</div><h4>Transparent Pricing</h4><p>Farmer-set prices, no hidden markup. You see exactly where your money goes.</p></div>
+      <div class="card reveal-item"><div class="icon-badge">♻️</div><h4>Zero-Waste Crates</h4><p>Reusable delivery crates picked up on your next order — no cardboard pile-up.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section section-paper">
+  <div class="wrap">
+    <div class="head-row"><div><div class="eyebrow">How It Works</div><h2>From click to crate in three steps.</h2></div></div>
+    <div class="steps-row reveal-group">
+      <div class="step reveal-item">
+        <span class="step-num">01</span>
+        <h4>Build Your Basket</h4>
+        <p>Browse by department or search — filter by organic, local, or dietary needs.</p>
+      </div>
+      <div class="step reveal-item">
+        <span class="step-num">02</span>
+        <h4>Pick Your Window</h4>
+        <p>Choose a 45-minute delivery slot, or same-day pickup at The Crate.</p>
+      </div>
+      <div class="step reveal-item">
+        <span class="step-num">03</span>
+        <h4>Unpack &amp; Enjoy</h4>
+        <p>Everything arrives sorted by aisle, cold-packed, ready for your fridge.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+<section class="section section-dark">
+  <div class="wrap">
+    <div class="head-row"><div><div class="eyebrow">Customer Stories</div><h2>52,000 households, one standard of fresh.</h2></div></div>
+    <div class="grid-3 reveal-group">
+      <div class="testi reveal-item">
+        <p>"I cancelled my supermarket membership after the first Stackly box. The basil alone was worth it."</p>
+        <div class="testi-person"><img src="./assets/priya.webp" alt="Customer portrait"><div><b>Priya Nair</b><span>Millbrook, NY</span></div></div>
+      </div>
+      <div class="testi reveal-item">
+        <p>"Delivery is scary-fast and the crate system means my recycling bin isn't overflowing anymore."</p>
+        <div class="testi-person"><img src="./assets/daniel.webp" alt="Customer portrait"><div><b>Daniel Ruiz</b><span>Poughkeepsie, NY</span></div></div>
+      </div>
+      <div class="testi reveal-item">
+        <p>"Their meat counter rivals the butcher I grew up going to. Genuinely restaurant-grade cuts."</p>
+        <div class="testi-person"><img src="./assets/cole.webp" alt="Customer portrait"><div><b>Marissa Cole</b><span>Rhinebeck, NY</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BLOG TEASER ============ -->
+<section class="section">
+  <div class="wrap">
+    <div class="head-row"><div><div class="eyebrow">From The Journal</div><h2>Stories from the field &amp; kitchen.</h2></div><a href="./404.html" class="btn btn-ghost btn-sm">All Articles →</a></div>
+    <div class="grid-3 reveal-group">
+      <a href="./404.html" class="blog-card reveal-item">
+        <div class="blog-img"><img src="./assets/seasonal vegetables.webp" alt="Seasonal vegetables"></div>
+        <span class="blog-tag">Seasonal Eating</span>
+        <h4>What's actually in season this month</h4>
+        <p>A farmer's-eye guide to shopping with the calendar, not against it.</p>
+      </a>
+      <a href="./404.html" class="blog-card reveal-item">
+        <div class="blog-img"><img src="./assets/bread on counter.webp" alt="Fresh bread on counter"></div>
+        <span class="blog-tag">Bakery</span>
+        <h4>Inside our 4am sourdough shift</h4>
+        <p>Meet the bakers who've been perfecting one loaf for six years straight.</p>
+      </a>
+      <a href="./404.html" class="blog-card reveal-item">
+        <div class="blog-img"><img src="./assets/basket6.webp" alt="Woman holding produce basket"></div>
+        <span class="blog-tag">Sustainability</span>
+        <h4>Why we still deliver in reusable crates</h4>
+        <p>The unglamorous logistics behind cutting our cardboard use by 80%.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NEWSLETTER CTA ============ -->
+<section class="section tight">
+  <div class="wrap">
+    <div class="cta-banner reveal">
+      <div>
+        <div class="eyebrow" style="color:var(--gold);">Stay In Season</div>
+        <h2>Get 15% off your first crate.</h2>
+        <p style="color:rgba(251,247,236,.75);">Weekly picks, seasonal recipes, and first access to limited harvests — straight to your inbox.</p>
+      </div>
+      <form class="newsletter-form">
+        <input type="email" placeholder="you@email.com" required>
+        <button type="submit" class="btn btn-primary">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</section>
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+  <a href="index.html" class="logo" style="color:var(--cream);margin-top:-6px;margin-bottom:8px;">
+    <img src="stackly-logo.webp" alt="Stackly logo" class="mark-logo">Stackly
+  </a>
+  <p style="max-width:280px;margin-top:6px;color:rgba(251,247,236,.7);">
+    Farm-fresh groceries, hand-picked daily and delivered to your door in under 45 minutes. Rooted in real produce, grown by real people.
+  </p>
+<div class="social-row">
+  <a href="./404.html" aria-label="X (Twitter)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.6 10.6 20.4 3h-1.6l-5.9 6.6L8.1 3H3l7.1 9.9L3 21h1.6l6.2-7 5 7H21l-7.4-10.4Zm-2.2 2.5-.7-1L5 4.2h2.5l4.6 6.4.7 1 6 8.3h-2.5l-4.9-6.8Z"/></svg></a>
+  <a href="./404.html" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.35-1.85 3.59 0 4.25 2.36 4.25 5.43v6.31ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z"/></svg></a>
+  <a href="./404.html" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-2.72 0-3.06.01-4.13.06-1.06.05-1.79.22-2.43.47a4.9 4.9 0 0 0-1.77 1.15A4.9 4.9 0 0 0 2.53 5.44c-.25.64-.42 1.37-.47 2.43C2.01 8.94 2 9.28 2 12s.01 3.06.06 4.13c.05 1.06.22 1.79.47 2.43a4.9 4.9 0 0 0 1.15 1.77 4.9 4.9 0 0 0 1.77 1.15c.64.25 1.37.42 2.43.47C8.94 21.99 9.28 22 12 22s3.06-.01 4.13-.06c1.06-.05 1.79-.22 2.43-.47a4.9 4.9 0 0 0 1.77-1.15 4.9 4.9 0 0 0 1.15-1.77c.25-.64.42-1.37.47-2.43.05-1.07.06-1.41.06-4.13s-.01-3.06-.06-4.13c-.05-1.06-.22-1.79-.47-2.43a4.9 4.9 0 0 0-1.15-1.77A4.9 4.9 0 0 0 18.56 2.53c-.64-.25-1.37-.42-2.43-.47C15.06 2.01 14.72 2 12 2Zm0 1.8c2.67 0 2.99.01 4.04.06.98.04 1.5.21 1.86.35.47.18.8.4 1.15.75.35.35.57.68.75 1.15.14.36.31.88.35 1.86.05 1.05.06 1.37.06 4.04s-.01 2.99-.06 4.04c-.04.98-.21 1.5-.35 1.86-.18.47-.4.8-.75 1.15-.35.35-.68.57-1.15.75-.36.14-.88.31-1.86.35-1.05.05-1.37.06-4.04.06s-2.99-.01-4.04-.06c-.98-.04-1.5-.21-1.86-.35a3.1 3.1 0 0 1-1.15-.75 3.1 3.1 0 0 1-.75-1.15c-.14-.36-.31-.88-.35-1.86-.05-1.05-.06-1.37-.06-4.04s.01-2.99.06-4.04c.04-.98.21-1.5.35-1.86.18-.47.4-.8.75-1.15.35-.35.68-.57 1.15-.75.36-.14.88-.31 1.86-.35 1.05-.05 1.37-.06 4.04-.06Zm0 3.38a4.82 4.82 0 1 0 0 9.64 4.82 4.82 0 0 0 0-9.64Zm0 7.95a3.13 3.13 0 1 1 0-6.26 3.13 3.13 0 0 1 0 6.26Zm6.14-8.14a1.13 1.13 0 1 1-2.26 0 1.13 1.13 0 0 1 2.26 0Z"/></svg></a>
+  <a href="./404.html" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.8 8.2s-.2-1.5-.8-2.1c-.8-.8-1.7-.8-2.1-.9C15.9 5 12 5 12 5h0s-3.9 0-6.9.2c-.4.05-1.3.1-2.1.9-.6.6-.8 2.1-.8 2.1S2 10 2 11.7v1.6c0 1.7.2 3.5.2 3.5s.2 1.5.8 2.1c.8.8 1.9.8 2.4.9C7.2 20 12 20 12 20s3.9 0 6.9-.2c.4-.05 1.3-.1 2.1-.9.6-.6.8-2.1.8-2.1s.2-1.7.2-3.5v-1.6c0-1.7-.2-3.5-.2-3.5ZM9.9 15V8.8l5.4 3.1-5.4 3.1Z"/></svg></a>
+</div>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul style="display:flex;flex-direction:column;gap:12px;">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="menu.html">Shop</a></li>
+          <li><a href="blog.html">Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Departments</h4>
+        <ul style="display:flex;flex-direction:column;gap:12px;">
+          <li><a href="./404.html">Fresh Produce</a></li>
+          <li><a href="./404.html">Bakery</a></li>
+          <li><a href="./404.html">Dairy & Eggs</a></li>
+          <li><a href="./404.html">Meat & Seafood</a></li>
+          <li><a href="./404.html">Pantry</a></li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 class="contact-heading">Contact Us</h4>
+        <ul class="contact-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Salem, Tamil Nadu, India</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4.5 4.5h3.4l1.4 4.2-2 1.6a12 12 0 0 0 5.4 5.4l1.6-2 4.2 1.4v3.4c0 .9-.7 1.6-1.6 1.6C10.4 20.1 3.9 13.6 3 6.1c0-.9.7-1.6 1.6-1.6Z"/></svg>+91 98765 43210</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>info@Stacklyhub.com</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Mon – Sat : 9AM – 6PM</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Stackly Market Co. All rights reserved.</span>
+      <span>  <a href="./404.html">Privacy Policy </a> <a href="./404.html">· Terms of Service</a> <a href="./404.html">· Cookie Settings</a></span>
+    </div>
+  </div>
+</footer>
+<script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ---------- Preloader (gooey produce → basket) ---------- */
+    (function(){
+      const preloader = document.getElementById('preloader');
+      if(!preloader){ return; }
+      document.documentElement.classList.add('preload-lock');
+
+      const blobs = preloader.querySelectorAll('.blob:not(.core)');
+      const core = preloader.querySelector('.blob.core');
+      const basket = preloader.querySelector('.basket-icon');
+      const letters = preloader.querySelectorAll('.word span');
+      const tagline = preloader.querySelector('.tagline');
+      const barTrack = preloader.querySelector('.bar-track');
+      const barFill = preloader.querySelector('.bar-fill');
+      const pct = preloader.querySelector('.pct');
+      const pctNum = preloader.querySelector('.pct b');
+
+      /* gentle floating loop for the produce blobs */
+      blobs.forEach((b,i)=>{
+        gsap.to(b,{
+          x:()=>gsap.utils.random(-14,14),
+          y:()=>gsap.utils.random(-14,14),
+          duration:()=>gsap.utils.random(1.3,2.1),
+          repeat:-1,yoyo:true,ease:'sine.inOut',delay:i*.12
+        });
+      });
+
+      const intro = gsap.timeline({defaults:{ease:'power3.out'}});
+      intro.to(core,{scale:1,duration:.5,ease:'back.out(2.4)'},.05)
+        .to(letters,{y:0,opacity:1,duration:.6,stagger:.05,ease:'power4.out'},.15)
+        .to(tagline,{opacity:1,duration:.5},'-=0.25')
+        .to([barTrack,pct],{opacity:1,duration:.4},'-=0.2');
+
+      /* animated progress, tied loosely to real window load */
+      const state = {p:0};
+      let winLoaded = document.readyState === 'complete';
+      window.addEventListener('load',()=>{ winLoaded = true; });
+
+      function paint(){
+        const v = Math.round(state.p);
+        pctNum.textContent = v;
+        barFill.style.width = v + '%';
+      }
+
+      gsap.to(state,{
+        p:90,duration:1.5,ease:'power1.inOut',onUpdate:paint,
+        onComplete:()=>{
+          if(winLoaded){ finish(); }
+          else{
+            const poll = setInterval(()=>{
+              if(winLoaded){ clearInterval(poll); finish(); }
+            },100);
+            setTimeout(()=>{ clearInterval(poll); finish(); },2500);
+          }
+        }
+      });
+
+      function finish(){
+        gsap.to(state,{
+          p:100,duration:.35,ease:'power2.out',onUpdate:paint,
+          onComplete:exitPreloader
+        });
+      }
+
+      function exitPreloader(){
+        document.dispatchEvent(new CustomEvent('stackly:preloaded'));
+        const exitTl = gsap.timeline({
+          onComplete:()=>{
+            preloader.remove();
+            document.documentElement.classList.remove('preload-lock');
+          }
+        });
+        exitTl
+          .to([letters,tagline,barTrack,pct],{opacity:0,y:-8,duration:.3,stagger:.02})
+          .to(blobs,{scale:0,duration:.32,ease:'power2.in'},'<')
+          .set(basket,{opacity:1},'-=0.1')
+          .fromTo(basket,{scale:.4,opacity:0},{scale:1,opacity:1,duration:.4,ease:'back.out(2.2)'},'<')
+          .to(basket,{scale:.5,opacity:0,duration:.35,ease:'power2.in'},'+=0.25')
+          .to(core,{scale:34,duration:.7,ease:'power2.inOut'},'-=0.35')
+          .to(preloader,{opacity:0,duration:.45,ease:'power1.inOut'},'-=0.15');
+      }
+    })();
+
+    /* ---------- Header scroll state ---------- */
+    const header = document.querySelector('header.site');
+    if(header){
+      ScrollTrigger.create({
+        start: 'top -60',
+        end: 99999,
+        toggleClass: {targets: header, className: 'scrolled'}
+      });
+    }
+
+    /* ---------- Mobile nav ---------- */
+    const burger = document.getElementById('burgerBtn');
+    const navLinks = document.getElementById('navLinks');
+    const navOverlay = document.getElementById('navOverlay');
+
+    /* ---------- Active page fail-safe: always highlight the current page in nav ---------- */
+    (function(){
+      const current = location.pathname.split('/').pop() || 'index.html';
+      document.querySelectorAll('.nav-links a[href]').forEach(a=>{
+        const href = a.getAttribute('href');
+        if(href === current){ a.classList.add('active'); }
+        else { a.classList.remove('active'); }
+      });
+    })();
+
+    function openMobileNav(){
+      navLinks.classList.add('open');
+      burger.classList.add('active');
+      burger.setAttribute('aria-expanded','true');
+      if(navOverlay) navOverlay.classList.add('show');
+      gsap.to(burger.querySelectorAll('span'),{
+        duration:.3,
+        rotate:(i)=> i===0?45:i===1?0:-45,
+        y:(i)=> i===0?7:i===1?0:-7,
+        opacity:(i)=> i===1?0:1
+      });
+    }
+    function closeMobileNav(){
+      navLinks.classList.remove('open');
+      burger.classList.remove('active');
+      burger.setAttribute('aria-expanded','false');
+      if(navOverlay) navOverlay.classList.remove('show');
+      gsap.to(burger.querySelectorAll('span'),{duration:.3,rotate:0,y:0,opacity:1});
+    }
+    if(burger && navLinks){
+      burger.addEventListener('click', () => {
+        navLinks.classList.contains('open') ? closeMobileNav() : openMobileNav();
+      });
+      if(navOverlay){ navOverlay.addEventListener('click', closeMobileNav); }
+      navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click', closeMobileNav));
+      document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeMobileNav(); });
+    }
+
+    /* ---------- Custom cursor dot (desktop only) ---------- */
+    if(window.matchMedia('(min-width:900px) and (hover:hover)').matches){
+      const dot = document.createElement('div');
+      dot.className='cursor-dot';
+      document.body.appendChild(dot);
+      window.addEventListener('mousemove', e=>{
+        gsap.to(dot,{x:e.clientX,y:e.clientY,opacity:1,duration:.5,ease:'power3.out'});
+      });
+      document.querySelectorAll('a,button').forEach(el=>{
+        el.addEventListener('mouseenter',()=>gsap.to(dot,{scale:2.4,duration:.3}));
+        el.addEventListener('mouseleave',()=>gsap.to(dot,{scale:1,duration:.3}));
+      });
+    }
+
+    /* ---------- Split-text char/line animation (GSAP-style, no paid plugin) ---------- */
+    function splitChars(el){
+      const words = el.textContent.split(' ');
+      el.textContent='';
+      words.forEach((w,wi)=>{
+        const wordSpan=document.createElement('span');
+        wordSpan.style.display='inline-block';
+        [...w].forEach(c=>{
+          const span=document.createElement('span');
+          span.className='char';
+          span.textContent=c;
+          wordSpan.appendChild(span);
+        });
+        el.appendChild(wordSpan);
+        if(wi<words.length-1) el.appendChild(document.createTextNode('\u00A0'));
+      });
+      return el.querySelectorAll('.char');
+    }
+
+    document.querySelectorAll('[data-split-line]').forEach(el=>{
+      el.querySelectorAll('.split-line > span').forEach((span,i)=>{
+        gsap.set(span,{yPercent:110,opacity:0});
+        gsap.to(span,{yPercent:0,opacity:1,duration:1,ease:'power4.out',delay:i*.12,
+          scrollTrigger:{trigger:el,start:'top 92%'}});
+      });
+    });
+
+    /* ---------- Hero entrance (runs once the preloader hands off) ---------- */
+    function runHeroEntrance(){
+      document.querySelectorAll('[data-split]').forEach(el=>{
+        const chars = splitChars(el);
+        gsap.set(chars,{yPercent:130,opacity:0,rotate:6});
+        gsap.to(chars,{yPercent:0,opacity:1,rotate:0,duration:.9,ease:'power4.out',stagger:.018});
+      });
+      gsap.set('[data-hero-el]',{opacity:0,y:40});
+      gsap.to('[data-hero-el]',{opacity:1,y:0,duration:1.1,stagger:.12,ease:'power3.out',delay:.15});
+    }
+    if(document.getElementById('preloader')){
+      document.addEventListener('stackly:preloaded', runHeroEntrance, {once:true});
+    } else {
+      runHeroEntrance();
+    }
+
+    /* ---------- Generic scroll reveal ---------- */
+    gsap.utils.toArray('.reveal').forEach((el,i)=>{
+      gsap.to(el,{
+        opacity:1,y:0,duration:1,ease:'power3.out',
+        scrollTrigger:{trigger:el,start:'top 88%'}
+      });
+    });
+
+    gsap.utils.toArray('.fade-img').forEach(el=>{
+      gsap.to(el,{clipPath:'inset(0 0 0% 0)',duration:1.3,ease:'power4.inOut',
+        scrollTrigger:{trigger:el,start:'top 85%'}});
+    });
+
+    /* stagger groups */
+    gsap.utils.toArray('.reveal-group').forEach(group=>{
+      const items = group.querySelectorAll('.reveal-item');
+      gsap.set(items,{opacity:0,y:50});
+      gsap.to(items,{opacity:1,y:0,duration:.9,stagger:.12,ease:'power3.out',
+        scrollTrigger:{trigger:group,start:'top 85%'}});
+    });
+
+    /* ---------- Counters ---------- */
+    gsap.utils.toArray('[data-count]').forEach(el=>{
+      const end = parseFloat(el.getAttribute('data-count'));
+      const suffix = el.getAttribute('data-suffix')||'';
+      const obj={val:0};
+      ScrollTrigger.create({
+        trigger:el, start:'top 90%', once:true,
+        onEnter:()=>gsap.to(obj,{val:end,duration:2,ease:'power2.out',
+          onUpdate:()=>{el.textContent=(Number.isInteger(end)?Math.floor(obj.val):obj.val.toFixed(1))+suffix;}})
+      });
+    });
+
+    /* ---------- Parallax images ---------- */
+    gsap.utils.toArray('[data-parallax]').forEach(el=>{
+      gsap.to(el,{
+        yPercent: el.getAttribute('data-parallax')||-12,
+        ease:'none',
+        scrollTrigger:{trigger:el.parentElement,start:'top bottom',end:'bottom top',scrub:true}
+      });
+    });
+
+    /* ---------- Rotating stamp on scroll ---------- */
+    gsap.utils.toArray('.stamp').forEach(el=>{
+      gsap.fromTo(el,{rotate:-30,scale:.6,opacity:0},{
+        rotate:-9,scale:1,opacity:1,duration:1,ease:'back.out(2)',
+        scrollTrigger:{trigger:el,start:'top 90%'}
+      });
+    });
+
+    /* ---------- Card tilt on hover ---------- */
+    document.querySelectorAll('.product-card, .card').forEach(card=>{
+      card.addEventListener('mousemove', e=>{
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left)/r.width - .5;
+        const y = (e.clientY - r.top)/r.height - .5;
+        gsap.to(card,{rotateY:x*6,rotateX:-y*6,duration:.5,ease:'power2.out',transformPerspective:800});
+      });
+      card.addEventListener('mouseleave',()=>gsap.to(card,{rotateY:0,rotateX:0,duration:.6,ease:'power3.out'}));
+    });
+
+    /* ---------- Background canvas: floating produce blobs (webflow-style ambient bg) ---------- */
+    (function(){
+      const canvas = document.getElementById('bg-canvas');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let W,H;
+      function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight*document.body.scrollHeight/window.innerHeight;
+        H = canvas.height = window.innerHeight; canvas.style.height='100vh';}
+      resize();
+      window.addEventListener('resize',resize);
+      const colors=['#3F8555','#E3B23C','#E8631E','#6FA96F'];
+      const blobs = Array.from({length:7}).map((_,i)=>({
+        x:Math.random()*W, y:Math.random()*H, r:60+Math.random()*90,
+        c:colors[i%colors.length], vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
+        t:Math.random()*1000
+      }));
+      function draw(){
+        ctx.clearRect(0,0,W,H);
+        blobs.forEach(b=>{
+          b.x+=b.vx; b.y+=b.vy; b.t+=0.008;
+          if(b.x<-150)b.x=W+150; if(b.x>W+150)b.x=-150;
+          if(b.y<-150)b.y=H+150; if(b.y>H+150)b.y=-150;
+          const rad = b.r + Math.sin(b.t)*10;
+          const g = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,rad);
+          g.addColorStop(0, b.c+'33');
+          g.addColorStop(1, b.c+'00');
+          ctx.fillStyle=g;
+          ctx.beginPath();
+          ctx.arc(b.x,b.y,rad,0,Math.PI*2);
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* ---------- Marquee pause on hover ---------- */
+    document.querySelectorAll('.marquee').forEach(m=>{
+      m.addEventListener('mouseenter',()=>m.querySelector('.marquee-track').style.animationPlayState='paused');
+      m.addEventListener('mouseleave',()=>m.querySelector('.marquee-track').style.animationPlayState='running');
+    });
+
+    /* respect reduced motion */
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      gsap.globalTimeline.timeScale(50);
+    }
+
+    /* product filter tabs */
+    document.querySelectorAll('.tab').forEach(tab=>{
+      tab.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        const f = tab.getAttribute('data-filter');
+        document.querySelectorAll('#product-grid .product-card').forEach(card=>{
+          const show = f==='all' || card.getAttribute('data-cat')===f;
+          gsap.to(card,{opacity:show?1:0,scale:show?1:.9,duration:.35,ease:'power2.out',
+            onStart:()=>{ if(show) card.style.display='block'; },
+            onComplete:()=>{ if(!show) card.style.display='none'; }});
+        });
+      });
+    });
+
+    /* add-to-cart micro interaction */
+document.querySelectorAll('.add-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    gsap.fromTo(btn,{scale:1},{scale:1.4,duration:.15,yoyo:true,repeat:1,ease:'power1.inOut'});
+  });
+});
+    function error(){
+      window.location.href="404.html";
+    }
+
+</script>
+<script src="js/prototype-guard.js"></script>
+</body>
+</html>
